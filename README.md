@@ -1,4 +1,4 @@
-Summit RC+S preprocessing and analysis functions
+Summit RC+S preprocessing and analysis functions and some cheat sheets 
 ==
 
 Summary: 
@@ -7,6 +7,17 @@ Summary:
 This collection of code allows the preprocessing analysis and plotting of RC+S data. It includes a collection of GUI tools to plot the data in interactive form as well as command line (Matlab) tools to get at the raw data. It also has some code to allow syncing to Delsys data. 
 
 ![converting .json to .csv](figures/conversion.jpg)
+
+Tips for data recording 
+-------------
+Sample data files for recording at home, in clinic and for aDBS are provided. 
+
+* Check the sensing settings:
+	* Mode 3/4 
+	* Sampling rate 
+	* Recording electrodes 
+	* Check that current settings will not create packet loss 
+
 
 Installation instructions
 -------------
