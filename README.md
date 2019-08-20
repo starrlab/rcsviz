@@ -76,28 +76,65 @@ TBD
 
 What does the raw data look like? 
 -------------
-The following `.json` files are created with each recording session: 
-* `DeviceSettings`
-* `DeviceSettings`
-* `DeviceSettings`
-* `DeviceSettings`
-* `DeviceSettings`
 
-What command line tools exist to read and open data? 
--------------
-#### Plot raw data 
-* `DeviceSettings`- details about getting raw data 
+General note: There are a number of utility functions to open the raw data at once from one folder (these are covered below). All the main functions should run without input (in which case they will usually ask for data directory with all `.json` files) or can be given a string with the folder path. 
+
+#### Converting files created within each RC+S recording session to .mat format: 
+
+* `MAIN_load_rcs_data_from_folder.m` - This function returns all data types for which data converters are written. Each of the arguments it returns is outlined below as well as the corresponding .json file and the `.m` file used that is called to convert this file. 
+
+The main function referenced above opens some of the files mentioned above and mostly returned them in the format of Matlab `table` variables or `struct`. Below is a detailed list of each `.json` file that is created for each RC+S session, input strucure, output structure and details about the type of information the file contains: 
+
+* `AdaptiveLog.json`
+	* Data type: Adaptive packets with information about adaptive algorithm states (like stim changes). Packet corresponds to FFT packets size. 
+	* Matlab function to open: not written yet (only temp unstable function for now) 
+	* Output: NA
+* `DeviceSettings.json`
+	* Data type: Contains all information about device settings (recording contacts used etc.). 
+	* Matlab function to open: `loadDeviceSettings`
+	* Output: `outRec` variable - contains channel information 
+* `DiagnosticsLog.json`
+	* contains mostly diagnostic information Medtronic may use for debug sessions. 
+* `ErrorLog.json`
+	* contains mostly diagnostic information Medtronic may use for debug sessions. 
+* `EventLog.json`
+	* Data type: Contains event information that is created using the `report` function in the `AdaptiveDBS` or `SCBS` data collection apps. 
+	* Matlab function to open: `loadEventLog` 
+	* Output: `eventTable`  
+* `RawDataFFT.json`
+	* Data type: Contains FFT packets 
+	* Matlab function to open: Not written yet as large scale data unlikely with full FFT packets. 
+	* Output:
+* `RawDataPower.json`
+	* Data type: Power data from predefined power bands. 
+	* Matlab function to open: `loadPowerData` 
+	* Output: `powerTable` - which contains all power packets and `powerBandInHz` which is a cell array with the pre defined power bands. 
+* `RawDataTD.json`
+	* Data type: This contains all the time domain data packets as well some timing information and meta data. 
+	* Matlab function to open: `MAIN` 
+	* Output: 
+		*`outdatcomplete` a table with all the data , 
+		* `srates` - a matrix with all sampling rates (double)
+		* `unqsrates` - a matrix with all unique sampling rates in the file 
+* `StimLog.json`
+	* Data type: Contains information about stim changes 
+	* Matlab function to open: not written yet 
+	* Output:
+* `TimeSync.json`
+	* Data type: Contains information about timing
+	* Matlab function to open: not written yet, may not be needed 
+	* Output:
+
+* `MAIN_report_data_in_folder.json`- Quickly reads a folder with many session folders and generates a textual report. This is helpful when looking at a month of data for example to sort out what has been done. 
+
 
 #### Preprocess a large amount of data 
-currently preprocessing a large amount of data takes a long time. 
-* `DeviceSettings`
-* `DeviceSettings`
-* `DeviceSettings`
+currently preprocessing a large amount of data takes a long time. Utility function to load many folders serially: 
+* `MAIN_load_rcsdata_from_folders`
 
 
 To Do: 
 -------------
-* Add routines to process data folders 
-* Consider implementing more efficient datetime storage (double rather than string) if human readability not important. 
-* Backtrace first packet `timestamp` from a system rollover. 
-* Consider using data that exists in TimeSync.json option.
+* 1
+* 2
+* 3
