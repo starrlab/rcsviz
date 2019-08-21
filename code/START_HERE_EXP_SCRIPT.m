@@ -101,6 +101,11 @@ dirnameMontage = fullfile('..','data','sample_data','montage_sweep','Session1563
 % this function doesn't take arguments - and just plots the data 
 plot_montage_data(); 
 
+%% plot stim sweep 
+% This allows you to write a stim sweep file. 
+stimSweepSampleFile = fullfile('..','data','sample_config_files','stim_sweep','stimsweep.csv'); 
+write_stim_sweep(stimSweepSampleFile)
+
 %% here is how we allign delsys data with RC+S data 
 [pn,fn] = fileparts(pwd);
 rcsFolder = fullfile(pn,'data','rcs_data','Session1541438482992','DeviceNPC700398H');
