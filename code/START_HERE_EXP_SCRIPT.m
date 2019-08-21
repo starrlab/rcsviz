@@ -97,7 +97,7 @@ plot_raw_rcs_data(dirname);
 
 %% plot motnage data 
 % this is where I put the montage data 
-dirnameMontage = fullfile('..','data','rcs_data','montage_files','Session1557937334709','DeviceNPC700398H');
+dirnameMontage = fullfile('..','data','sample_data','montage_sweep','Session1563323122046','DeviceNPC700414H');
 % this function doesn't take arguments - and just plots the data 
 plot_montage_data(); 
 

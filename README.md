@@ -77,6 +77,18 @@ The data viewer has many functions. It allows you zoom into the data, plot PSD's
 * `plot spectrogram` - plots spectrogram of zoomed in section 
 * `Save name` - saves the current data chunk with the name given in text box 
 
+#### RC+S Montage Sweep viewer 
+
+This tool is used in tandem with the montage function with the adaptiveDBS software we use for in clinic data collection. It relies on having a single session with only montage data in it (so don't record anything else during this session except for montage data). It automatically uses the events for the different electrode configuration to plot the montage data. 
+
+This will bring up the following GUI: 
+
+![RC+S montage GUI](images/rcsMontageGUI.jpg)
+
+A - use the load data button to load the directory with all session .json folders, then press plot PSD's button
+B - There is a tab for STN and for M1 data 
+C - You can selector + CTRL to select only a few channels at a time 
+
 #### RC+S Delsys analysis tool 
 
 TBD 
