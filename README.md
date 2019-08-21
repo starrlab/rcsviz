@@ -33,6 +33,7 @@ Quick and dirty
 I don't care about the details - just tell me how to plot the data - I want to take a look!
 Run this matlab function: 
 `plot_raw_rcs_data(fn)` The variable `fn` is a string of the path to the folder with the `.json` files. This is the folder that starts with `Device...`. 
+Another way to quickly get started (not using GUI tools) is to run the example script (`START_HERE_EXP_SCRIPT`) that has executable blocks that work with the sample data we have in this repo.  
 
 GUI Tools
 -------------
