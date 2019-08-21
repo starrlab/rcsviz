@@ -16,6 +16,7 @@ Sample data files for recording at home, in clinic and for aDBS are provided.
 	* Recording electrodes: Make sure to check recording electrodes are correct. 
 	* Make sure all the channels you want are "enabled". 
 	* Check both stream and sense enables are set correctly. 
+	ADDD THIS
 	* Check that current settings will not create packet loss using this excel sheet. 
 
 
@@ -132,6 +133,8 @@ The main function referenced above opens some of the files mentioned above and m
 	* Output:
 
 * `MAIN_report_data_in_folder.json`- Quickly reads a folder with many session folders and generates a textual report. This is helpful when looking at a month of data for example to sort out what has been done. 
+
+To get more in-depth information about the format of the data, please take a look at this example script `START_HERE_EXP_SCRIPT` which loads data in this repo with examples that can be executed in code blocks. 
 
 
 #### Preprocess a large amount of data 
