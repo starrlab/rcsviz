@@ -20,10 +20,10 @@ Sample data files for recording at home, in clinic and for aDBS are provided in 
 
 #### Sample config files: 
 [aDBS settings sample file](data/sample_config_files/aDBS_config/adbsConfig.md) - these are sample sense settings for aDBS (embedded) recording using one LD and 1 power channel. 
-home recording - setting optimized for home recording of data 
-in clinic recording - setting optimized for in clinic recording of data 
-montage recording - sample montage files that we used for most montage settings 
-stim sweep - sample files to be used during a stimulation sweep
+[home recording](data/sample_config_files/home_recording/homeRecordingReadme.md) - setting optimized for home recording of data 
+[in clinic recording](data/sample_config_files/in_clinic_recording/InClinicRecordingreadme.md) - setting optimized for in clinic recording of data 
+[montage recording](data/sample_config_files/montage_recording/Montagereadme.md) - sample montage files that we used for most montage settings 
+[stim sweeep](data/sample_config_files/stim_sweep/stimsweepreadme.md) - sample files to be used during a stimulation sweep
 
 	
 
