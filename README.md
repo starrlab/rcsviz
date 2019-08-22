@@ -8,16 +8,25 @@ This collection of code allows the preprocessing analysis and plotting of RC+S d
 
 Tips for data recording 
 -------------
-Sample data files for recording at home, in clinic and for aDBS are provided. 
+Sample data files for recording at home, in clinic and for aDBS are provided in this repo. Below you will find links to sample files that will work with each recording scenario. Here are a few general tips: 
 
 * Check the sensing settings:
 	* Mode 3/4: Recording in mode 3 allows reliable transmission at 4500 bps at a larger range, whereas mode 4 allows 6000 bps at a shorter range. At home we usually use mode 3 and in clinic mode 4.  
 	* Sampling rate: 2 time domain channels @1000Hz, 4 @500hz.   
 	* Recording electrodes: Make sure to check recording electrodes are correct. 
 	* Make sure all the channels you want are "enabled". 
-	* Check both stream and sense enables are set correctly. 
-	ADDD THIS
-	* Check that current settings will not create packet loss using this excel sheet. 
+	* Check both stream and sense enables are set correctly. Stream enables control what data is actually streamed (recorded) whereas sense enables have to do with what data it is possible to stream. One example: to stream power data you would want to allow FFT for sense (required) but not stream (since it transmits too much data and you will get packet loss). Consult Medtronic manual for more detail on this. 
+	* Check that current settings will not create packet loss using excel sheet in the help docs if using settings that are different than the ones supplied below. 
+
+#### Sample config files: 
+aDBS settings - these are sample sense settings for aDBS (embedded) recording using one LD and 1 power channel. 
+home recording - setting optimized for home recording of data 
+in clinic recording - setting optimized for in clinic recording of data 
+montage recording - sample montage files that we used for most montage settings 
+stim sweep - sample files to be used during a stimulation sweep
+
+	
+
 
 
 Installation instructions

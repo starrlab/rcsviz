@@ -1,0 +1,21 @@
+{
+	"comment": "List of medications and symptoms for Report Window to user",
+	"Medications": [
+		"medicine1",
+		"medicine2",
+		"medicine 3"
+	],
+	"Symptoms": [
+		"Feeling 'on' little / no symptoms",
+		"Balance and posture",
+		"Slowness of Movement",
+		"Dyskinesia",
+		"Dystonia",
+		"Rigidity (Muscle Stiffness)",
+		"Speech",
+		"Tremor",
+		"Mania",
+		"Inappropriate Sleepiness",
+		"sad" 
+	]
+}

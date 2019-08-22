@@ -1,0 +1,5 @@
+{
+	"comment": "true if it is bilateral or false if it is unilateral. Switch is true if you want the switch tab functionality or false if you do not",
+	"Bilateral": false,
+	"Switch": true
+}

@@ -1,0 +1,75 @@
+{
+	"Comment": "config file for the adaptive DBS configurations",
+	"Detection":{
+		"LD0": {
+			"Comment": "Detection settings for LD0",
+			"B0": 25000,
+			"B1": 45000,
+			"UpdateRate": 5,
+			"OnsetDuration": 0,
+			"TerminationDuration": 0,
+			"HoldOffOnStartupTime": 1,
+			"StateChangeBlankingUponStateChange": 2,
+			"FractionalFixedPointValue": 0,
+			"DualThreshold": true,
+			"BlankBothLD": false,
+			"Inputs": {
+				"Ch0Band0": true,
+				"Ch0Band1": false,
+				"Ch1Band0": false,
+				"Ch1Band1": false,
+				"Ch2Band0": false,
+				"Ch2Band1": false,
+				"Ch3Band0": false,
+				"Ch3Band1": false
+			},
+			"WeightVector": [1,0,0,0],
+			"NormalizationMultiplyVector": [1,0,0,0],
+			"NormalizationSubtractVector": [0,0,0,0]
+		},
+		"LD1": {
+			"Comment": "Detection settings for LD1",
+			"IsEnabled": false,
+			"B0": 1000,
+			"B1": 6000,
+			"UpdateRate": 5,
+			"OnsetDuration": 0,
+			"TerminationDuration": 0,
+			"HoldOffOnStartupTime": 1,
+			"StateChangeBlankingUponStateChange": 2,
+			"FractionalFixedPointValue": 0,
+			"DualThreshold": true,
+			"BlankBothLD": false,
+			"Inputs": {
+				"Ch0Band0": true,
+				"Ch0Band1": false,
+				"Ch1Band0": false,
+				"Ch1Band1": false,
+				"Ch2Band0": false,
+				"Ch2Band1": false,
+				"Ch3Band0": false,
+				"Ch3Band1": false
+			},
+			"WeightVector": [1,0,0,0],
+			"NormalizationMultiplyVector": [1,0,0,0],
+			"NormalizationSubtractVector": [0,0,0,0]
+		}
+	},
+	"Adaptive": {
+		"Program0": {
+			"Comment": "Rise_fall times how long it takes to ramp up or down. If stat is unused, set to 25.5",
+			"RiseTimes": 6500,
+			"FallTimes": 6500,
+			"RateTargetInHz": 100,
+			"State0AmpInMilliamps": 1,
+			"State1AmpInMilliamps": 1.5,
+			"State2AmpInMilliamps": 2,
+			"State3AmpInMilliamps": 25.5,
+			"State4AmpInMilliamps": 25.5,
+			"State5AmpInMilliamps": 25.5,
+			"State6AmpInMilliamps": 25.5,
+			"State7AmpInMilliamps": 25.5,
+			"State8AmpInMilliamps": 25.5
+		}
+	}	
+}
