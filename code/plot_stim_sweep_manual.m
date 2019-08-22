@@ -1,14 +1,11 @@
-function plot_stim_sweep_manual()
+function plot_stim_sweep_manual(datadir,figdir)
+% input: string of data directory with a stim sweep session, string of
+% figure directoy where you want figures to be output 
+% output: figure of stim sweep results 
 
-params.datadir = '/Users/roee/Starr_Lab_Folder/Data_Analysis/RCS_data/RCS02/v10_2month/rcs_data/AdaptiveSCS/RCS02L/Session1561747818076/DeviceNPC700398H'; 
-% params.datadir = '/Users/roee/Starr_Lab_Folder/Data_Analysis/RCS_data/RCS02/v10_2month/rcs_data/AdaptiveSCS/RCS02R/Session1561747195376/DeviceNPC700404H';
-params.outdir  = '/Users/roee/Starr_Lab_Folder/Data_Analysis/RCS_data/RCS02/v10_2month/figures/left_side';
+params.datadir = datadir;
+params.outdir  = figdir;
 
-params.datadir = '/Users/roee/Starr_Lab_Folder/Data_Analysis/RCS_data/RCS01/v20_back_from_italy_stim_sweep/rcs_data/Session1562789458575/DeviceNPC700395H';
-params.outdir  = '/Users/roee/Starr_Lab_Folder/Data_Analysis/RCS_data/RCS01/v20_back_from_italy_stim_sweep/figures';
-
-params.datadir = '/Volumes/Samsung_T5/RCS05/1Month/rcs_data/StarrLab/RCS05L/Session1565897010754/DeviceNPC700414H';
-params.outdir  = '/Volumes/Samsung_T5/RCS05/1Month/figures';
 % params to print the figures 
 prfig.plotwidth           = 25;
 prfig.plotheight          = 25*0.6;
