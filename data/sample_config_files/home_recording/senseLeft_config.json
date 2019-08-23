@@ -10,9 +10,9 @@
     "TimeDomain": true,
     "FFT": true,
     "Power": true,
-    "LD0": true,
+    "LD0": false,
     "LD1": false,
-    "AdaptiveState": true,
+    "AdaptiveState": false,
     "LoopRecording": false,
     "Unused": false
   },
@@ -22,9 +22,9 @@
     "FFT": false,
     "Power": true,
     "Accelerometry": true,
-    "AdaptiveTherapy": true,
-    "AdaptiveState": true,
-    "EventMarker": false,
+    "AdaptiveTherapy": false,
+    "AdaptiveState": false,
+    "EventMarker": true,
     "TimeStamp": true
   },
   "Sense": {
