@@ -93,7 +93,7 @@ head(powerTable);
 
 %% Other functions to know of / about 
 % this will rapidly plot all the data in a direcotry
-dirname = fullfile('..','data','sample_data','data_folder','RCS04L','Session1562087867615','DeviceNPC700418H');
+dirname = fullfile('..','data','sample_data','data_folder','RCS04L','Session1562088293641','DeviceNPC700418H');
 plot_raw_rcs_data(dirname);
 
 %% plot motnage data 
