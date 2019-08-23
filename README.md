@@ -24,18 +24,21 @@ Sample data files for recording at home, in clinic and for aDBS are provided in 
 * [in clinic recording](data/sample_config_files/in_clinic_recording) - setting optimized for in clinic recording of data 
 * [montage recording](data/sample_config_files/montage_recording) - sample montage files that we used for most montage settings 
 * [stim sweeep](data/sample_config_files/stim_sweep) - sample files to be used during a stimulation sweep
-
 	
-
-
-
 Installation instructions
 -------------
 
-* Download the repository 
+* Compatibility - mac or PC. Much of this also works on Linux but a central toolbox we rely on to open `.json` files does not work on Linux. 
+* If you are on a PC install GitHub (if it isn't already installed). You can check this by open opening terminal (mac) or cmd (pc) and typing `git status`. If that doesn't work, than you need to install GitHub. 
+* Clone the repository. It's very important that you don't just download all the code but do it properly with a clone so that you can get updates in the future and the next item on the list work (the check updates). If you don't know how to do that:
+	* PC: Navigate to a location in which you want the code to save then `Shift` `right-click` on the background of the Explorer window, then click on "Open command window here" or "Open PowerShell window here". 
+	* Mac: open a terminal and navigate to location where you want the code to download [(shortcut](https://www.maketecheasier.com/launch-terminal-current-folder-mac/)
+* in resulting window type: `git clone https://github.com/starrlab/rcsviz.git` 
+* `cd` into the downloaded directory 
+* Note that you should always run all of this code within the `code` directory. It relies on relative directory structure to operate properly. Do not navigate to patient data folders even if you added everything to your matlab path. 
 * Before every use please run the function `updateandcheckdepedencies`. 
-
-Samples of raw RC+S time domain data (in JSON format) with the processed "tidy" output created from it are available in the `sample_data` folder of this repo.
+* The best place start if you don't want to use GUI tools and wand to understand the data structure is the sample data folder and this script `START_HERE_EXP_SCRIPT`. 
+This will allow you to see samples of raw RC+S time domain data (in JSON format) and test the processed "tidy" output created from the `.json` files that RC+S output. All data exists in the `sample_data` folder of this rep and `START_HERE_EXP_SCRIPT` navigates there using relative directory mapping.
 
 Quick and dirty 
 -------------
