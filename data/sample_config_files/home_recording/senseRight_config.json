@@ -10,7 +10,7 @@
     "TimeDomain": true,
     "FFT": true,
     "Power": true,
-    "LD0": true,
+    "LD0": false,
     "LD1": false,
     "AdaptiveState": false,
     "LoopRecording": false,
@@ -22,15 +22,15 @@
     "FFT": false,
     "Power": true,
     "Accelerometry": true,
-    "AdaptiveTherapy": true,
-    "AdaptiveState": true,
-    "EventMarker": false,
+    "AdaptiveTherapy": false,
+    "AdaptiveState": false,
+    "EventMarker": true,
     "TimeStamp": true
   },
   "Sense": {
     "commentTDChannelDefinitions": "No more than two channels can be on a single bore. When configuring, channels on first bore will always be first. Can only have sampling rates of: 250, 500, and 1000 (Hz) or disable it by setting IsDisabled to true",
     "commentFilters": "Stage one low pass(Lpf1) can only be: 450, 100, or 50 (Hz). Stage two low pass(Lpf2) can only be: 1700, 350, 160, or 100 (Hz). High pass(Hpf) can only be: 0.85, 1.2, 3.3, or 8.6 (Hz), Inputs[ anode(positive), cathode(negative) ]",
-    "TDSampleRate": 500,
+    "TDSampleRate": 250,
 	"TimeDomains": [
 	  {
 		"ch0": "STN",
