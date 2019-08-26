@@ -16,7 +16,8 @@ Sample data files for recording at home, in clinic and for aDBS are provided in 
 	* Recording electrodes: Make sure to check recording electrodes are correct. 
 	* Make sure all the channels you want are "enabled". 
 	* Check both stream and sense enables are set correctly. Stream enables control what data is actually streamed (recorded) whereas sense enables have to do with what data it is possible to stream. One example: to stream power data you would want to allow FFT for sense (required) but not stream (since it transmits too much data and you will get packet loss). Consult Medtronic manual for more detail on this. 
-	* Check that current settings will not create packet loss using excel sheet in the help docs if using settings that are different than the ones supplied below. 
+	* Check that current settings will not create packet loss using excel sheet in the help docs if using settings that are different than the ones supplied below. This is currently being implemented in software but is not ready yet. 
+	* On stim: unless tested, best to stick to LFP1 and LFP2 at 100Hz for STN/GPi leads.
 
 #### Sample config files: 
 * [aDBS settings sample file](data/sample_config_files/aDBS_config) - these are sample sense settings for aDBS (embedded) recording using one LD and 1 power channel. 
