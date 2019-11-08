@@ -23,26 +23,30 @@ for s = 1:length(sessionIds)
     outRec = loadDeviceSettingsForMontage(deviceSettingsFn);
     fileload = fullfile(fdeviceDir{1},'EventLog.json');
     eventTable = loadEventLog(fileload);
-    
-    % get and save data
-    montageData = extract_montage_data(fdeviceDir{1});
-    if ~isempty(montageData)
-        savename    = fullfile(fdeviceDir{1},'rawMontageData.mat');
-        save(savename,'montageData');
-    end
-    
-    % print out montages for quality control
-    fprintf('time %s\n',eventTable.sessionTime(1))
-    fprintf('_________\n');
-    fprintf('_________\n');
-    for i = 1:length(outRec)
-        cellfun(@(x) fprintf('%0.2d %s\n',i,x),{outRec(i).tdData.chanFullStr}')
+    % check to make sure not a stim monatage
+    stimEvents = cellfun(@(x) any(strfind(x,'Stim')),eventTable.EventType);
+    if sum(stimEvents)==0
+        
+        % get and save data
+        montageData = extract_montage_data(fdeviceDir{1});
+        if ~isempty(montageData)
+            savename    = fullfile(fdeviceDir{1},'rawMontageData.mat');
+            save(savename,'montageData');
+        end
+        
+        % print out montages for quality control
+        fprintf('time %s\n',eventTable.sessionTime(1))
         fprintf('_________\n');
+        fprintf('_________\n');
+        for i = 1:length(outRec)
+            cellfun(@(x) fprintf('%0.2d %s\n',i,x),{outRec(i).tdData.chanFullStr}')
+            fprintf('_________\n');
+        end
+        fprintf('_________\n');
+        fprintf('_________\n');
+        fprintf('\n');
+        fprintf('\n');
     end
-    fprintf('_________\n');
-    fprintf('_________\n');
-    fprintf('\n');
-    fprintf('\n');
 end
 %%
 
@@ -148,13 +152,13 @@ else
     montageData.M1  = app.rawDatM1;
     montageData.startTime = secs(1);
     montageData.endTime = secs(end);
-    % get patient 
+    % get patient
     [pn,fn] = fileparts(dirname);
     [pn,fn] = fileparts(pn);
     [pn,patientraw] = fileparts(pn);
-    montageData.patient = patientraw(1:end-1); 
-    montageData.side = patientraw(end); 
-    % get side 
+    montageData.patient = patientraw(1:end-1);
+    montageData.side = patientraw(end);
+    % get side
     
 end
 end
