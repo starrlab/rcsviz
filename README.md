@@ -110,18 +110,83 @@ TBD
 What does the raw data look like? 
 -------------
 
+The Medtronic API saves data into a session directory. Files can typically be streamed for 30 hours (~ max INS battery life) if streaming time domain data, or even longer if streaming power domain data. 
+
+Each session directory contains a number of files in `.json` format. Typically each of the `.json` files have a header that includes some metadata and then contain information in packet form. Packets are streamed in UDP fashion. This means that some packets may be lost in transmission or if patient walks out of range. Usually each packet in the `.json` files contains a mix of numerical data and metadata. Below is a non-comprehensive guide regarding the main datatypes that exists within each `.json` file as well as their organization when being imported into the `matlab` table format. 
+
+The `.json` file structure has several advantages: It is human readable, there is a library of parsers to read and ingest data in `.json` format and the hierarchal structural organization make supporting complex data types and structured variables easy. It also has several notable disadvantages (somewhat attributable to the way Medtronic implemented their file format): You can not easily open large files, can not jump to specific area in the file quickly and the data is not organized in easy to analyze matrices. Further, information from each session is scattered across a large number of `.json` files. Finally, much of the meta data, though human readable is not readily understandable. For example, sampling rates are stored in binary format with arbitrary values that must be looked up in the Medtronic support docs instead of in Hz. There are much worse examples, for example decoding which power domain predetermined bands were streamed from the device required a complex set of deductive steps. 
+
+The main goal of this section of the document is to describe the .json file types and the Matlab table variables that are used to flatten them to simple, easily analyzable structures. I opted to keep the .json file names whenever possible. I also flattened the data such that samples were in rows, and data features are in columns. 
+
+Each `session` will create a directory with a unix timestamp in the format [`session` `timestamp`]. This session directory will have the following `.json` files: 
+
+* `RawDataTD.json` This file contains the raw time domain data in packet form. Each packet has timing information (and packet sizes are not consistant). Data can be streamed from up to 4 time domain channels (2 on each bore) at 250Hz and 500Hz or up to 2 time domain channels at 1000Hz. 
+* `RawDataAccel.json`This file contains the raw onboard acceleteomey data. 
+
+* `AdaptiveLog.json`
+* `DeviceSettings.json`
+* `DiagnosticsLog.json`
+* `ErrorLog.json`
+* `EventLog.json`
+
+* `RawDataFFT.json`
+* `RawDataPower.json`
+
+* `StimLog.json`
+* `TimeSync.json
+
+Note that in each recording session it is possible to not stream a particular data subset. For example, you can stream power domain data and not time domain data or any other data type. In that case the other data types will contain empty `.json` files with minimal metadata information. `
+
+
+
 General note: There are a number of utility functions to open the raw data at once from one folder (these are covered below). All the main functions should run without input (in which case they will usually ask for data directory with all `.json` files) or can be given a string with the folder path. 
 
 #### Converting files created within each RC+S recording session to .mat format: 
 
 * `MAIN_load_rcs_data_from_folder.m` - This function returns all data types for which data converters are written. Each of the arguments it returns is outlined below as well as the corresponding .json file and the `.m` file used that is called to convert this file. 
 
-The main function referenced above opens some of the files mentioned above and mostly returned them in the format of Matlab `table` variables or `struct`. Below is a detailed list of each `.json` file that is created for each RC+S session, input strucure, output structure and details about the type of information the file contains: 
+The main function referenced above opens some of the files mentioned above and mostly returned them in the format of a Matlab `table` variables or `struct`. Below is a detailed list of each `.json` file that is created for each RC+S session, input strucure, output structure and details about the type of information the file contains: 
 
 * `AdaptiveLog.json`
 	* Data type: Adaptive packets with information about adaptive algorithm states (like stim changes). Packet corresponds to FFT packets size. 
+		*`HostUnixTime`
+		*`PacketGenTime`	
+*`PacketRxUnixTime`
+*`dataSize`
+*`dataType`
+*`dataTypeSequence`
+*`globalSequence`
+*`info`
+*`systemTick`
+*`timestamp`
+*`CurrentAdaptiveState`
+*`CurrentProgramAmplitudesInMilliamps`
+*`IsInHoldOffOnStartup`
+*`Ld0DetectionStatus`
+*`Ld1DetectionStatus`
+*`PreviousAdaptiveState`
+*`SensingStatus`
+*`StateEntryCount`
+*`StateTime`
+*`StimFlags`
+*`StimRateInHz`
+*`LD0_featureInputs`
+*`LD0_fixedDecimalPoint`
+*`LD0_highThreshold`
+*`LD0_lowThreshold`
+*`LD0_output`
+*`LD1_featureInputs`
+*`LD1_fixedDecimalPoint`
+*`LD1_highThreshold`
+*`LD1_lowThreshold`
+*`LD1_output`
+
 	* Matlab function to open: not written yet (only temp unstable function for now) 
 	* Output: NA
+	
+	
+	
+	
 * `DeviceSettings.json`
 	* Data type: Contains all information about device settings (recording contacts used etc.). 
 	* Matlab function to open: `loadDeviceSettings`
@@ -134,6 +199,13 @@ The main function referenced above opens some of the files mentioned above and m
 	* Data type: Contains event information that is created using the `report` function in the `AdaptiveDBS` or `SCBS` data collection apps. 
 	* Matlab function to open: `loadEventLog` 
 	* Output: `eventTable`  
+	* `sessionTime`
+	* `sessionid`
+	* `EventSubType`
+	* `EventType`
+	* `UnixOnsetTime`
+	* `UnixOffsetTime`
+	* `HostUnixTime`
 * `RawDataFFT.json`
 	* Data type: Contains FFT packets 
 	* Matlab function to open: Not written yet as large scale data unlikely with full FFT packets. 
@@ -142,6 +214,44 @@ The main function referenced above opens some of the files mentioned above and m
 	* Data type: Power data from predefined power bands. 
 	* Matlab function to open: `loadPowerData` 
 	* Output: `powerTable` - which contains all power packets and `powerBandInHz` which is a cell array with the pre defined power bands. 
+	* `powerOut`, `powerTable`, `bands`
+	*`powerBandInHz`
+*`powerChannelsIdxs`
+*`fftSize`
+*`bins`
+*`numBins`
+*`binWidth`
+*`sampleRate`
+	
+	
+	
+	*`PacketGenTime`
+*`PacketRxUnixTime`
+*`ExternalValuesMask`
+*`FftSize`
+*`IsPowerChannelOverrange`
+*`SampleRate`
+*`ValidDataMask`
+*`Band1`
+*`Band2`
+*`Band3`
+*`Band4`
+*`Band5`
+*`Band6`
+*`Band7`
+*`Band8`
+*`dataSize`
+*`dataType`
+*`dataTypeSequence`
+*`globalSequence`
+*`info`
+*`systemTick`
+*`timestamp`
+
+
+	
+	
+	
 * `RawDataTD.json`
 	* Data type: This contains all the time domain data packets as well some timing information and meta data. 
 	* Matlab function to open: `MAIN` 
@@ -149,6 +259,34 @@ The main function referenced above opens some of the files mentioned above and m
 		*`outdatcomplete` a table with all the data , 
 		* `srates` - a matrix with all sampling rates (double)
 		* `unqsrates` - a matrix with all unique sampling rates in the file 
+		* `key0` `key1` `key2` `key3`  
+		* `systemTick`
+		* `timestamp`
+		* `samplerate`
+		* `PacketGenTime`		
+		* `PacketRxUnixTime`
+		* `packetsizes`
+		* `derivedTimes`
+* `RawDataAccel.json`
+		*`outdatcomplete` a table with all the data , 
+		* `srates` - a matrix with all sampling rates (double)
+		* `unqsrates` - a matrix with all unique sampling rates in the file 
+		* `XSamples` `YSamples` `ZSamples`  
+		* `systemTick`
+		* `timestamp`
+		* `samplerate`
+		* `PacketGenTime`		
+		* `PacketRxUnixTime`
+		* `packetsizes`
+		* `derivedTimes`
+	
+		
+		
+		
+		
+		
+		
+		
 * `StimLog.json`
 	* Data type: Contains information about stim changes 
 	* Matlab function to open: not written yet 
