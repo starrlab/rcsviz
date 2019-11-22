@@ -243,8 +243,8 @@ The main function referenced above opens some of the files mentioned above and m
 	* Data type: This contains all the time domain data packets as well some timing information and meta data. 
 	* Matlab function to open: `MAIN` 
 	* Output: 
-			* `outdatcomplete` a matlab `table` with all the data which includes these columns:
-			* `srates` - a vector of size `number of samples` samples has a sample rate associated with it for each data sample. This can be different across the file.  
+	** `outdatcomplete` a matlab `table` with all the data which includes these columns:
+	** `srates` - a vector of size `number of samples` samples has a sample rate associated with it for each data sample. This can be different across the file.  
 			* `key0` - channel 0 on the first INS bore (assuming no bridging). containes numerical data in milivolt. This is the name of the field in the `.json`. Information about channnel setings is in the `DeviceSettings.json` file. 
 			* `key1` - channel 1 on the first INS bore (assuming no bridging). containes numerical data in milivolt. This is the name of the field in the `.json` 
 			* `key2` - channel 2 on the first INS bore (assuming no bridging). containes numerical data in milivolt. This is the name of the field in the `.json`
