@@ -242,20 +242,20 @@ The main function referenced above opens some of the files mentioned above and m
 * `RawDataTD.json`
 	* Data type: This contains all the time domain data packets as well some timing information and meta data. 
 	* Matlab function to open: `MAIN` 
-	* Output: 
-	** `outdatcomplete` a matlab `table` with all the data which includes these columns:
-	** `srates` - a vector of size `number of samples` samples has a sample rate associated with it for each data sample. This can be different across the file.  
-			* `key0` - channel 0 on the first INS bore (assuming no bridging). containes numerical data in milivolt. This is the name of the field in the `.json`. Information about channnel setings is in the `DeviceSettings.json` file. 
-			* `key1` - channel 1 on the first INS bore (assuming no bridging). containes numerical data in milivolt. This is the name of the field in the `.json` 
-			* `key2` - channel 2 on the first INS bore (assuming no bridging). containes numerical data in milivolt. This is the name of the field in the `.json`
-			* `key3` - channel 3 on the first INS bore (assuming no bridging). containes numerical data in milivolt. This is the name of the field in the `.json`
-			* `systemTick` - 16bit INS clock-driven tick counter, rolls over, LSB is 100microseconds (high accuracy and resolution). You get one of these for each packet which corresopnds to the last sample. 
-			* `timestamp` -  INS clock-driven time, LSB is seconds (highly accurate, low resolution, does not roll over). Same as above. 
-			* `samplerate`- derived metric I compute for each sample, vector. 
-			* `PacketGenTime` - API estimate of when the data packet was created on the INS within the PC clock domain. Estimate created by using results of latest latency check (one is done at system initialization, but can re-perform whenever you want) and time sync streaming. Potentially useful for syncing with other sensors or devices by bringing things into the PC clock domain, but is only accurate within 50ms give or take.
-			* `PacketRxUnixTime` - PC clock-driven time when the packet was received via Bluetooth, as accurate as a C# DateTime.now (10-20ms)
-			* `packetsizes` - number of samples per packet. 
-			* `derivedTimes` - the derived time for each sample computed using a combination of `timestamp` and `systemTick`. This is the most accurate clock in the time domai. For more on how this computation is done see ![here](https://github.com/roeegilron/rcsanalysis)
+	* Output:  
+	* `outdatcomplete` a matlab `table` with all the data which includes these columns:  
+	* `srates` - a vector of size `number of samples` samples has a sample rate associated with it for each data sample. This can be different across the file.  
+			* `key0` - channel 0 on the first INS bore (assuming no bridging). containes numerical data in milivolt. This is the name of the field in the `.json`. Information about channnel setings is in the `DeviceSettings.json` file.  
+			* `key1` - channel 1 on the first INS bore (assuming no bridging). containes numerical data in milivolt. This is the name of the field in the `.json`  
+			* `key2` - channel 2 on the first INS bore (assuming no bridging). containes numerical data in milivolt. This is the name of the field in the `.json`  
+			* `key3` - channel 3 on the first INS bore (assuming no bridging). containes numerical data in milivolt. This is the name of the field in the `.json`  
+			* `systemTick` - 16bit INS clock-driven tick counter, rolls over, LSB is 100microseconds (high accuracy and resolution). You get one of these for each packet which corresopnds to the last sample.  
+			* `timestamp` -  INS clock-driven time, LSB is seconds (highly accurate, low resolution, does not roll over). Same as above.  
+			* `samplerate`- derived metric I compute for each sample, vector.  
+			* `PacketGenTime` - API estimate of when the data packet was created on the INS within the PC clock domain. Estimate created by using results of latest latency check (one is done at system initialization, but can re-perform whenever you want) and time sync streaming. Potentially useful for syncing with other sensors or devices by bringing things into the PC clock domain, but is only accurate within 50ms give or take.  
+			* `PacketRxUnixTime` - PC clock-driven time when the packet was received via Bluetooth, as accurate as a C# DateTime.now (10-20ms).  
+			* `packetsizes` - number of samples per packet.  
+			* `derivedTimes` - the derived time for each sample computed using a combination of `timestamp` and `systemTick`. This is the most accurate clock in the time domai. For more on how this computation is done see [here](https://github.com/roeegilron/rcsanalysis).  
 
 		
 		
