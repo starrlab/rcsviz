@@ -103,14 +103,17 @@ A - use the load data button to load the directory with all session .json folder
 B - There is a tab for STN and for M1 data 
 C - You can selector + CTRL to select only a few channels at a time 
 
-#### RC+S Delsys analysis tool 
+#### RC+S data format 
 
-TBD 
-
-What does the raw data look like? 
+What is the RC+S native data format? 
 -------------
 
 The Medtronic API saves data into a session directory. Files can typically be streamed for 30 hours (~ max INS battery life) if streaming time domain data, or even longer if streaming power domain data. 
+
+There are two primary challenges associated with opening these `.json` file and analyzing them. The first, is the nature of the files. There are 11 `.json` files that combine meta-data and numerical data. As explained below, interpreting the meaning of the metadata is often not straightforward. The second is dealing with lost packets and accurately representing the data in the time domain across the different classes of data. Each of these challenges and how we have solved in this instance are detailed below. 
+
+RC+S raw data structure and conversions  
+-------------
 
 Each session directory contains a number of files in `.json` format. Typically each of the `.json` files have a header that includes some metadata and then contain information in packet form. Packets are streamed in UDP fashion. This means that some packets may be lost in transmission or if patient walks out of range. Usually each packet in the `.json` files contains a mix of numerical data and metadata. Below is a non-comprehensive guide regarding the main datatypes that exists within each `.json` file as well as their organization when being imported into the `matlab` table format. 
 
@@ -118,32 +121,27 @@ The `.json` file structure has several advantages: It is human readable, there i
 
 The main goal of this section of the document is to describe the .json file types and the Matlab table variables that are used to flatten them to simple, easily analyzable structures. I opted to keep the .json file names whenever possible. I also flattened the data such that samples were in rows, and data features are in columns. 
 
-Each `session` will create a directory with a unix timestamp in the format [`session` `timestamp`]. This session directory will have the following `.json` files: 
+Each `session` will create a directory with a unix timestamp in the format [`session` `timestamp`]. This session directory will have the following `.json` files. I have written readers for 5/9 `.json` files (the first 6 listed below). 
 
-* `RawDataTD.json` This file contains the raw time domain data in packet form. Each packet has timing information (and packet sizes are not consistant). Data can be streamed from up to 4 time domain channels (2 on each bore) at 250Hz and 500Hz or up to 2 time domain channels at 1000Hz. 
-* `RawDataAccel.json`This file contains the raw onboard acceleteomey data. 
-
-* `AdaptiveLog.json`
-* `DeviceSettings.json`
-* `DiagnosticsLog.json`
-* `ErrorLog.json`
-* `EventLog.json`
-
-* `RawDataFFT.json`
-* `RawDataPower.json`
-
-* `StimLog.json`
-* `TimeSync.json
+* `RawDataTD.json` - Contains continuous raw time domain data in packet form. Each packet has timing information (and packet sizes are not consistant). Data can be streamed from up to 4 time domain channels (2 on each bore) at 250Hz and 500Hz or up to 2 time domain channels at 1000Hz. Data is represented in packets that contain variable sample numbers. A timestamp is only available for the last element of each data packet and timing information for each sample must be deduced. 
+* `RawDataAccel.json` - Contains continuous raw onboard 3 axis accelerometry data as well as timing information. The structure and timing information is similar to the time data files 
+* `DeviceSettings.json` Contains discrete information about device settings. For example, the sampling rate, the montage config (which electrodes are being recorded from), power bands being used, etc. Since connecting to the RC+S is often a time consuming processes the same file often contains different sample rates and recording montages. Each time a change is registered `DeviceSettings.json` will contain another packet with the timestamped nature of the change. This data is discrete and not continuous. 
+* `RawDataFFT.json` - Contains continuous information streamed from the onboard (on-chip) FFT engine. This is only used in rare cases in our use cases, since streaming FFT information is bandwidth intensive and will preclude one from streaming any time domain data. I have not written a reader for this file type. 
+* `RawDataPower.json` - Contains continuous information streamed from the on board FFT engine in select power bands. The data rate is set by the FFT engine, and can be very fast (1ms) and very slow (upper limit is in the hours or days range). This is the raw input in the onboard embedded adaptive detector. The raw power is much less data intensive than the FFT data. You can stream up to 8 power domain channels (2/each TD channel) at once. Note that the actual bandpass information is (e.g. what values in Hz are being bandpassed) is not contained in the `RawDataPower.json` but in the `DeviceSettings.json`. If these values are changes in the middle of the recording (as they often are during testing of embedded adaptive sessions) this will have to be dealt with later in stitching the data into readable form. 
+* `AdaptiveLog.json` -  Contains any information from the embedded adaptive detector. Information such as detector state and current in milliamps. 
+* `StimLog.json` - Contains discrete information about the stimulation setup. E.G. which group, program, rate and amplitude the device is currently in. 
+* `ErrorLog.json` - Contains information about errors. I have not written a parser for this as most of the errors are caught by our loggers or other methods. 
+* `EventLog.json` - Contains discrete information we write down into the device. These can be experimental timings or patient report of his state if streaming at home. Note that this information only contains timing information in computer time, whereas all the continuous information time domain or power domain data has INS time to rely on (on board INS clock). More about why this is important below. 
+* `DiagnosticsLog.json` - Contains discrete information that can be used for error checking. 
+* `TimeSync.json` - Do not use this file. Not clear to me what it does. 
 
 Note that in each recording session it is possible to not stream a particular data subset. For example, you can stream power domain data and not time domain data or any other data type. In that case the other data types will contain empty `.json` files with minimal metadata information. `
 
-
-
 General note: There are a number of utility functions to open the raw data at once from one folder (these are covered below). All the main functions should run without input (in which case they will usually ask for data directory with all `.json` files) or can be given a string with the folder path. 
 
-#### Converting files created within each RC+S recording session to .mat format: 
+#### Detailed information about the structure of each `.json` file and conversion to `.mat` variables (mostly `table`). 
 
-* `MAIN_load_rcs_data_from_folder.m` - This function returns all data types for which data converters are written. Each of the arguments it returns is outlined below as well as the corresponding .json file and the `.m` file used that is called to convert this file. 
+* `MAIN_load_rcs_data_from_folder.m` - This function returns all data types for which data converters are written. Each of the arguments it returns is outlined below as well as the corresponding .json file and the `.m` file  that is called to convert this file. 
 
 The main function referenced above opens some of the files mentioned above and mostly returned them in the format of a Matlab `table` variables or `struct`. Below is a detailed list of each `.json` file that is created for each RC+S session, input strucure, output structure and details about the type of information the file contains: 
 
@@ -151,50 +149,44 @@ The main function referenced above opens some of the files mentioned above and m
 	* Data type: Adaptive packets with information about adaptive algorithm states (like stim changes). Packet corresponds to FFT packets size. 
 		*`HostUnixTime`
 		*`PacketGenTime`	
-*`PacketRxUnixTime`
-*`dataSize`
-*`dataType`
-*`dataTypeSequence`
-*`globalSequence`
-*`info`
-*`systemTick`
-*`timestamp`
-*`CurrentAdaptiveState`
-*`CurrentProgramAmplitudesInMilliamps`
-*`IsInHoldOffOnStartup`
-*`Ld0DetectionStatus`
-*`Ld1DetectionStatus`
-*`PreviousAdaptiveState`
-*`SensingStatus`
-*`StateEntryCount`
-*`StateTime`
-*`StimFlags`
-*`StimRateInHz`
-*`LD0_featureInputs`
-*`LD0_fixedDecimalPoint`
-*`LD0_highThreshold`
-*`LD0_lowThreshold`
-*`LD0_output`
-*`LD1_featureInputs`
-*`LD1_fixedDecimalPoint`
-*`LD1_highThreshold`
-*`LD1_lowThreshold`
-*`LD1_output`
+		*`PacketRxUnixTime`
+		*`dataSize`
+		*`dataType`
+		*`dataTypeSequence`
+		*`globalSequence`
+		*`info`
+		*`systemTick`
+		*`timestamp`
+		*`CurrentAdaptiveState`
+		*`CurrentProgramAmplitudesInMilliamps`
+		*`IsInHoldOffOnStartup`
+		*`Ld0DetectionStatus`
+		*`Ld1DetectionStatus`
+		*`PreviousAdaptiveState`
+		*`SensingStatus`
+		*`StateEntryCount`
+		*`StateTime`
+		*`StimFlags`
+		*`StimRateInHz`
+		*`LD0_featureInputs`
+		*`LD0_fixedDecimalPoint`
+		*`LD0_highThreshold`
+		*`LD0_lowThreshold`
+		*`LD0_output`
+		*`LD1_featureInputs`
+		*`LD1_fixedDecimalPoint`
+		*`LD1_highThreshold`
+		*`LD1_lowThreshold`
+		*`LD1_output`
 
-	* Matlab function to open: not written yet (only temp unstable function for now) 
-	* Output: NA
-	
-	
-	
+	* Matlab function to open: `readAdaptiveJson.m` still a little buggy and does not return data in ideal table structure but still in a simple mat structure that mirror `.json` to a certain degree. 
 	
 * `DeviceSettings.json`
 	* Data type: Contains all information about device settings (recording contacts used etc.). 
 	* Matlab function to open: `loadDeviceSettings`
-	* Output: `outRec` variable - contains channel information 
-* `DiagnosticsLog.json`
-	* contains mostly diagnostic information Medtronic may use for debug sessions. 
-* `ErrorLog.json`
-	* contains mostly diagnostic information Medtronic may use for debug sessions. 
+	* Output: `outRec` a structure variable that contains discrete channel information. Still needs more work to be combined with other table data forms. 
+	
+	
 * `EventLog.json`
 	* Data type: Contains event information that is created using the `report` function in the `AdaptiveDBS` or `SCBS` data collection apps. 
 	* Matlab function to open: `loadEventLog` 
@@ -205,7 +197,8 @@ The main function referenced above opens some of the files mentioned above and m
 	* `EventType`
 	* `UnixOnsetTime`
 	* `UnixOffsetTime`
-	* `HostUnixTime`
+	* `HostUnixTime
+	`
 * `RawDataFFT.json`
 	* Data type: Contains FFT packets 
 	* Matlab function to open: Not written yet as large scale data unlikely with full FFT packets. 
@@ -216,59 +209,57 @@ The main function referenced above opens some of the files mentioned above and m
 	* Output: `powerTable` - which contains all power packets and `powerBandInHz` which is a cell array with the pre defined power bands. 
 	* `powerOut`, `powerTable`, `bands`
 	*`powerBandInHz`
-*`powerChannelsIdxs`
-*`fftSize`
-*`bins`
-*`numBins`
-*`binWidth`
-*`sampleRate`
-	
-	
-	
+	*`powerChannelsIdxs`
+	*`fftSize`
+	*`bins`
+	*`numBins`
+	*`binWidth`
+	*`sampleRate`
 	*`PacketGenTime`
-*`PacketRxUnixTime`
-*`ExternalValuesMask`
-*`FftSize`
-*`IsPowerChannelOverrange`
-*`SampleRate`
-*`ValidDataMask`
-*`Band1`
-*`Band2`
-*`Band3`
-*`Band4`
-*`Band5`
-*`Band6`
-*`Band7`
-*`Band8`
-*`dataSize`
-*`dataType`
-*`dataTypeSequence`
-*`globalSequence`
-*`info`
-*`systemTick`
-*`timestamp`
+	*`PacketRxUnixTime`
+	*`ExternalValuesMask`
+	*`FftSize`
+	*`IsPowerChannelOverrange`
+	*`SampleRate`
+	*`ValidDataMask`
+	*`Band1`
+	*`Band2`
+	*`Band3`
+	*`Band4`
+	*`Band5`
+	*`Band6`
+	*`Band7`
+	*`Band8`
+	*`dataSize`
+	*`dataType`
+	*`dataTypeSequence`
+	*`globalSequence`
+	*`info`
+	*`systemTick`
+	*`timestamp`
 
-
-	
-	
-	
 * `RawDataTD.json`
 	* Data type: This contains all the time domain data packets as well some timing information and meta data. 
 	* Matlab function to open: `MAIN` 
 	* Output: 
-		*`outdatcomplete` a table with all the data , 
-		* `srates` - a matrix with all sampling rates (double)
-		* `unqsrates` - a matrix with all unique sampling rates in the file 
-		* `key0` `key1` `key2` `key3`  
-		* `systemTick`
-		* `timestamp`
-		* `samplerate`
-		* `PacketGenTime`		
-		* `PacketRxUnixTime`
-		* `packetsizes`
-		* `derivedTimes`
-* `RawDataAccel.json`
-		*`outdatcomplete` a table with all the data , 
+		*`outdatcomplete` a table with all the data which includes these columns:
+			* `srates` - a vector of size `number of samples` samples has a sample rate associated with it for each data sample. This can be different across the file.  
+			* `key0` - first channel 
+			* `key1`
+			* `key2`
+			* `key3`  
+			* `systemTick`
+			* `timestamp`
+			* `samplerate`
+			* `PacketGenTime`		
+			* `PacketRxUnixTime`
+			* `packetsizes`
+			* `derivedTimes`
+		
+		
+* `RawDataAccel.json` - Contains continuous raw onboard 3 axis accelerometry data as well as timing information. The structure and timing information is similar to the time data files. 
+	* Data type: This contains all the time domain data packets as well some timing information and meta data. 
+		*`outdatcomplete` a table with all the data
 		* `srates` - a matrix with all sampling rates (double)
 		* `unqsrates` - a matrix with all unique sampling rates in the file 
 		* `XSamples` `YSamples` `ZSamples`  
@@ -280,7 +271,12 @@ The main function referenced above opens some of the files mentioned above and m
 		* `packetsizes`
 		* `derivedTimes`
 	
-		
+* `DiagnosticsLog.json`
+	* contains mostly diagnostic information Medtronic may use for debug sessions. 
+	
+* `ErrorLog.json`
+	* contains mostly diagnostic information Medtronic may use for debug sessions. 
+
 		
 		
 		
