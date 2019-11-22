@@ -145,100 +145,6 @@ General note: There are a number of utility functions to open the raw data at on
 
 The main function referenced above opens some of the files mentioned above and mostly returned them in the format of a Matlab `table` variables or `struct`. Below is a detailed list of each `.json` file that is created for each RC+S session, input strucure, output structure and details about the type of information the file contains: 
 
-* `AdaptiveLog.json`
-	* Data type: Adaptive packets with information about adaptive algorithm states (like stim changes). Packet corresponds to FFT packets size. 
-		*`HostUnixTime`
-		*`PacketGenTime`	
-		*`PacketRxUnixTime`
-		*`dataSize`
-		*`dataType`
-		*`dataTypeSequence`
-		*`globalSequence`
-		*`info`
-		*`systemTick`
-		*`timestamp`
-		*`CurrentAdaptiveState`
-		*`CurrentProgramAmplitudesInMilliamps`
-		*`IsInHoldOffOnStartup`
-		*`Ld0DetectionStatus`
-		*`Ld1DetectionStatus`
-		*`PreviousAdaptiveState`
-		*`SensingStatus`
-		*`StateEntryCount`
-		*`StateTime`
-		*`StimFlags`
-		*`StimRateInHz`
-		*`LD0_featureInputs`
-		*`LD0_fixedDecimalPoint`
-		*`LD0_highThreshold`
-		*`LD0_lowThreshold`
-		*`LD0_output`
-		*`LD1_featureInputs`
-		*`LD1_fixedDecimalPoint`
-		*`LD1_highThreshold`
-		*`LD1_lowThreshold`
-		*`LD1_output`
-
-	* Matlab function to open: `readAdaptiveJson.m` still a little buggy and does not return data in ideal table structure but still in a simple mat structure that mirror `.json` to a certain degree. 
-	
-* `DeviceSettings.json`
-	* Data type: Contains all information about device settings (recording contacts used etc.). 
-	* Matlab function to open: `loadDeviceSettings`
-	* Output: `outRec` a structure variable that contains discrete channel information. Still needs more work to be combined with other table data forms. 
-	
-	
-* `EventLog.json`
-	* Data type: Contains event information that is created using the `report` function in the `AdaptiveDBS` or `SCBS` data collection apps. 
-	* Matlab function to open: `loadEventLog` 
-	* Output: `eventTable`  
-	* `sessionTime`
-	* `sessionid`
-	* `EventSubType`
-	* `EventType`
-	* `UnixOnsetTime`
-	* `UnixOffsetTime`
-	* `HostUnixTime
-	`
-* `RawDataFFT.json`
-	* Data type: Contains FFT packets 
-	* Matlab function to open: Not written yet as large scale data unlikely with full FFT packets. 
-	* Output:
-	
-* `RawDataPower.json`
-	* Data type: Power data from predefined power bands. 
-	* Matlab function to open: `loadPowerData` 
-	* Output: `powerTable` - which contains all power packets and `powerBandInHz` which is a cell array with the pre defined power bands. 
-	* `powerOut`, `powerTable`, `bands`
-	*`powerBandInHz`
-	*`powerChannelsIdxs`
-	*`fftSize`
-	*`bins`
-	*`numBins`
-	*`binWidth`
-	*`sampleRate`
-	*`PacketGenTime`
-	*`PacketRxUnixTime`
-	*`ExternalValuesMask`
-	*`FftSize`
-	*`IsPowerChannelOverrange`
-	*`SampleRate`
-	*`ValidDataMask`
-	*`Band1`
-	*`Band2`
-	*`Band3`
-	*`Band4`
-	*`Band5`
-	*`Band6`
-	*`Band7`
-	*`Band8`
-	*`dataSize`
-	*`dataType`
-	*`dataTypeSequence`
-	*`globalSequence`
-	*`info`
-	*`systemTick`
-	*`timestamp`
-
 * `RawDataTD.json`
 	* Data type: This contains all the time domain data packets as well some timing information and meta data. 
 	* Matlab function to open: `MAIN` 
@@ -256,39 +162,122 @@ The main function referenced above opens some of the files mentioned above and m
 			* `PacketRxUnixTime` - PC clock-driven time when the packet was received via Bluetooth, as accurate as a C# DateTime.now (10-20ms).  
 			* `packetsizes` - number of samples per packet.  
 			* `derivedTimes` - the derived time for each sample computed using a combination of `timestamp` and `systemTick`. This is the most accurate clock in the time domai. For more on how this computation is done see [here](https://github.com/roeegilron/rcsanalysis).  
+		
+* `RawDataAccel.json` - Contains continuous raw onboard 3 axis accelerometry data as well as timing information. The structure and timing information is similar to the time data files.   
+	* Data type: This contains all the acc. domain data packets as well some timing information and meta data. All timing information is the same as above for time domain, so will only explain the different fields - namely acc. related fields.  
+		* Matlab function to open: `MAIN`  
+		*`outdatcomplete` a table with all the data  
+		* `srates` - a matrix with all sampling rates (double)  
+		* `XSamples` - x axis    
+		* `YSamples` - y axis  
+		* `ZSamples` - z axis  
+		
+* `DeviceSettings.json`
+	* Data type: Contains all information about device settings (recording contacts used etc.). 
+	* Matlab function to open: `loadDeviceSettings`  
+	* Output: `outRec` a structure variable that contains discrete channel information. Still needs more work to be combined with other table data forms.   
+
+* `AdaptiveLog.json`
+	* Data type: Adaptive packets with information about adaptive algorithm states (like stim changes). Packet corresponds to FFT packets size.   
+	* Timing information fields:  
+		*`HostUnixTime`  
+		*`PacketGenTime`  	
+		*`PacketRxUnixTime`  
+		*`dataSize`  
+		*`dataType`  
+		*`dataTypeSequence`  
+		*`globalSequence`  
+		*`info`  
+		*`systemTick`  
+		*`timestamp`  
+	* Numerical data information fields:  
+		*`CurrentAdaptiveState`- Current adaptive state (can be one of 9)  
+		*`CurrentProgramAmplitudesInMilliamps` - Instantaneous amplitude  
+		*`IsInHoldOffOnStartup` - hold of time 
+		*`Ld0DetectionStatus` - LD0 detection status  (on/off)  
+		*`Ld1DetectionStatus` - LD1   
+		*`PreviousAdaptiveState`  
+		*`SensingStatus`  
+		*`StateEntryCount`  
+		*`StateTime`  
+		*`StimFlags`  
+		*`StimRateInHz`  
+		*`LD0_featureInputs`  
+		*`LD0_fixedDecimalPoint`  
+		*`LD0_highThreshold` - B0 thresholds  
+		*`LD0_lowThreshold` - B1 thresholds  
+		*`LD0_output`  
+		*`LD1_featureInputs`  
+		*`LD1_fixedDecimalPoint`  
+		*`LD1_highThreshold`  
+		*`LD1_lowThreshold`  
+		*`LD1_output`  
+	* Matlab function to open: `readAdaptiveJson.m` still a little buggy and does not return data in ideal table structure but still in a simple mat structure that mirror `.json` to a certain degree.   
+	
+* `EventLog.json`  
+	* Data type: Contains event information that is created using the `report` function in the `AdaptiveDBS` or `SCBS` data collection apps. Note that you would need to move event time from pc time to INS time to get accurate readings of event times as they relate to INS time. This data stream contains discrete events. 
+	* Matlab function to open: `loadEventLog` 
+	* Output: `eventTable`  
+	* `sessionTime`  
+	* `sessionid`  
+	* `EventSubType` - text  
+	* `EventType`  - text
+	* `UnixOnsetTime`  
+	* `UnixOffsetTime`  
+	* `HostUnixTime  
+	`
+* `RawDataFFT.json`
+	* Data type: Contains FFT packets 
+	* Matlab function to open: Not written yet as large scale data unlikely with full FFT packets. 
+	* Output:
+	
+* `RawDataPower.json`
+	* Data type: Power data from predefined power bands. 
+	* Matlab function to open: `loadPowerData` 
+	* Output: `powerTable` - which contains all power packets and `powerBandInHz` which is a cell array with the pre defined power bands. 
+	* `powerOut`, `powerTable`, `bands`
+	*`powerBandInHz`  
+	*`powerChannelsIdxs`  
+	*`fftSize`  
+	*`bins`  
+	*`numBins`  
+	*`binWidth`  
+	*`sampleRate`  
+	*`PacketGenTime`  
+	*`PacketRxUnixTime`  
+	*`ExternalValuesMask`  
+	*`FftSize`  
+	*`IsPowerChannelOverrange`  
+	*`SampleRate`  
+	*`ValidDataMask  `
+	*`Band1`  
+	*`Band2`  
+	*`Band3`  
+	*`Band4`  
+	*`Band5`  
+	*`Band6`  
+	*`Band7`  
+	*`Band8`  
+	*`dataSize`  
+	*`dataType`  
+	*`dataTypeSequence`  
+	*`globalSequence`  
+	*`info`  
+	*`systemTick`  
+	*`timestamp`  
 
 		
-		
-* `RawDataAccel.json` - Contains continuous raw onboard 3 axis accelerometry data as well as timing information. The structure and timing information is similar to the time data files. 
-	* Data type: This contains all the time domain data packets as well some timing information and meta data. 
-		*`outdatcomplete` a table with all the data
-		* `srates` - a matrix with all sampling rates (double)
-		* `unqsrates` - a matrix with all unique sampling rates in the file 
-		* `XSamples` `YSamples` `ZSamples`  
-		* `systemTick`
-		* `timestamp`
-		* `samplerate`
-		* `PacketGenTime`		
-		* `PacketRxUnixTime`
-		* `packetsizes`
-		* `derivedTimes`
+* `StimLog.json`
+	* Data type: Contains information about stim changes 
+	* Matlab function to open: `loadStimSettings.m`  
+	* Output: A Matlab `table` with discrete information about stim change events 
 	
 * `DiagnosticsLog.json`
 	* contains mostly diagnostic information Medtronic may use for debug sessions. 
 	
 * `ErrorLog.json`
 	* contains mostly diagnostic information Medtronic may use for debug sessions. 
-
 		
-		
-		
-		
-		
-		
-* `StimLog.json`
-	* Data type: Contains information about stim changes 
-	* Matlab function to open: not written yet 
-	* Output:
 * `TimeSync.json`
 	* Data type: Contains information about timing
 	* Matlab function to open: not written yet, may not be needed 
