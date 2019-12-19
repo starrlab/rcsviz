@@ -48,6 +48,21 @@ Run this matlab function:
 `plot_raw_rcs_data(fn)` The variable `fn` is a string of the path to the folder with the `.json` files. This is the folder that starts with `Device...`. Note that zooming in with resulting graph will zoom in all channels at once. Also (top left) button (plot PSD + spect) will allow you to plot PSD's and spectrograms of the zoomed in portion. This is stored in a "snapshots" folder that is created in the directory of the raw data.
 Another way to quickly get started (not using GUI tools) is to run the example script (`START_HERE_EXP_SCRIPT`) that has executable blocks that work with the sample data we have in this repo.  
 
+Other useful function to know about / use while exploring larger data sets: 
+* `MAIN_report_data_in_folder` - given a folder as input this will create a text file of all session folders and events in that folder. It also creates a `database.mat` with that information 
+* `concantenate_event_data` - This will concatenate event data from all the session folders and save a `.mat` file of the events 
+* `print_device_settings_in_folders` - This will create a text file with all device settings in each session. So that you can easily find instances in whihc your session has changed settings. 
+
+Loading all the data from a session is done via this command: 
+* `MAIN_load_rcs_data_from_folder(dirname);` - where `diranme` is the path in which all the `.json` files live 
+* This function will have the following outputs which have a direct 1x1 correspondance with the `.json` files: 
+*  `outdatcomplete` - time domain data 
+* `outRec` - device data info 
+* `eventTable` - events in pc computer clock time  
+*``outdatcompleteAcc` - actigraphy data 
+* `powerOut` - power based data 
+* `adaptiveTable` - adaptive trial data 
+
 GUI Tools
 -------------
 
