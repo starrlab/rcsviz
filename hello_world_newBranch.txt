@@ -1,3 +1,7 @@
 hi Roee,
 
-juan creating a hello world fake file for testing of the new branch
+juan creating a hello world fake file for testing of the new branch which I have called
+
+rcsviz_ja
+
+this is just a first testing stage of the concept. we can iterate and eventually find a suitable intuitive name, etc...
