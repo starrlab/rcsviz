@@ -31,7 +31,7 @@ jsonobj = deserializeJSON(filename);
 
 
 if ~isempty(strfind(filename,'RawDataTD'))
-    if ~isempty(jsonobj)
+    if ~isempty(jsonobj) && isfield(jsonobj,'TimeDomainData')
         if ~isempty(jsonobj.TimeDomainData)  % no data exists
             [outtable, srates] = unravelData(jsonobj);
         else

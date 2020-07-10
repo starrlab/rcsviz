@@ -8,7 +8,7 @@ for f = 1:length(DeviceSettings)
     curStr = DeviceSettings{f};
     if isfield(curStr,'SensingConfig')
         if isfield(curStr.SensingConfig,'timeDomainChannels')
-            curStr.SensingConfig.timeDomainChannels
+            curStr.SensingConfig.timeDomainChannels;
             tdData = translateTimeDomainChannelsStruct(curStr.SensingConfig.timeDomainChannels);
         end
         if  isfield(curStr.SensingConfig,'fftConfig')
@@ -58,7 +58,7 @@ if ~exist('outRec','var') % if no data exists create empty 'outRec' structure
     outRec = []; 
 end
 
-%%
+%% 
 
 % loop on structures and construct table of files that exist
 [pn,fnm,ext ] = fileparts(fn);

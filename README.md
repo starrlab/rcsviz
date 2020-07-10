@@ -50,11 +50,30 @@ Another way to quickly get started (not using GUI tools) is to run the example s
 
 Other useful function to know about / use while exploring larger data sets: 
 * `MAIN_report_data_in_folder` - given a folder as input this will create a text file of all session folders and events in that folder. It also creates a `database.mat` with that information 
+### it failed in SCBS folder 
+	Index exceeds the number of array elements (0).
+	Error in getDataBaseRCSdata (line 37)
+        dbout(d).tdfile = tdfile{1};
+	Error in MAIN_report_data_in_folder (line 8)
+	tblout = getDataBaseRCSdata(dirname);
+###
+
 * `concantenate_event_data` - This will concatenate event data from all the session folders and save a `.mat` file of the events 
 * `print_device_settings_in_folders` - This will create a text file with all device settings in each session. So that you can easily find instances in whihc your session has changed settings. 
 
 Loading all the data from a session is done via this command: 
+
 * `MAIN_load_rcs_data_from_folder(dirname);` - where `diranme` is the path in which all the `.json` files live 
+### bug when attempting to load 1 single file
+	% Error in loadPowerData (line 2)
+	% powerLog = jsondecode(fixMalformedJson(fileread(fn),'EventLog'));
+	% Error in MAIN_load_rcs_data_from_folder (line 95)
+                [powerTable, powerBandInHz] = loadPowerData(fileload);
+
+### problem solved if running first, the function
+* `MAIN_load_rcs_data_from_folders(dirname);` - where `diranme` is the path in which all the session directory live
+### then went back to the MAIN_..._folder ... and it does the job partially (only found 'outdatcomplete' file ###
+
 * This function will have the following outputs which have a direct 1x1 correspondance with the `.json` files: 
 *  `outdatcomplete` - time domain data 
 * `outRec` - device data info 
@@ -103,6 +122,15 @@ The data viewer has many functions. It allows you zoom into the data, plot PSD's
 * `save` - saves the current view as a data chunk in the directory in which the data exists 
 * `From\To text boxes` - if you input time information it will zoom into these times (press return). 
 * `plot psd` - plots psd of zoomed in section 
+### didn't work for me ###
+	%Error using datetime/isbetween>isbetweenUtil (line 96)
+	%All inputs must have a common size, or be scalar.
+	%Error in datetime/isbetween (line 50)
+	%[aData,lData,uData] = isbetweenUtil(a,lower,upper);
+	%Error in rcsDataChopper/plotPSD (line 230)
+	%idxuseDeviceSettings = find(isbetween(timeStart,...
+###
+
 * `plot spectrogram` - plots spectrogram of zoomed in section 
 * `Save name` - saves the current data chunk with the name given in text box 
 
