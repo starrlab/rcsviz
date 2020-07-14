@@ -10,220 +10,145 @@ concatenateAllevents = 0;
 
 %% data paths
 % datapathAll = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10R';
-subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10L/Session1593205514505/DeviceNPC700436H';
-subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10L/Session1593206205651/DeviceNPC700436H';
-subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10L/Session1593207192304/DeviceNPC700436H';
-subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10L/Session1593208334311/DeviceNPC700436H';
-subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10L/Session1593208710319/DeviceNPC700436H';
-
-subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10R/Session1593621265584/DeviceNPC700430H';
-subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10R/Session1593622890480/DeviceNPC700430H';
-subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10R/Session1593623681795/DeviceNPC700430H';
-subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10R/Session1593624709046/DeviceNPC700430H';
+% subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10L/Session1593205514505/DeviceNPC700436H';
+% subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10L/Session1593206205651/DeviceNPC700436H';
+% subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10L/Session1593207192304/DeviceNPC700436H';
+% subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10L/Session1593208334311/DeviceNPC700436H';
+% subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10L/Session1593208710319/DeviceNPC700436H';
+% 
+% subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10R/Session1593621265584/DeviceNPC700430H';
+% subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10R/Session1593622890480/DeviceNPC700430H';
+% subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10R/Session1593623681795/DeviceNPC700430H';
+% subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10R/Session1593624709046/DeviceNPC700430H';
 subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10R/Session1593625251718/DeviceNPC700430H';
-subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10R/Session1593627135536/DeviceNPC700430H';
+% subfoldpath = '/Users/juananso/Dropbox (Personal)/Work/DATA/RCS_patients/RCS10/1month/programming/RCS10R/Session1593627135536/DeviceNPC700430H';
 
 %% create data base log file
 if loadAllDataInSessionsFolder
     MAIN_load_rcsdata_from_folders(datapathAll);
 end
 
-%% Looking at the event data
+%% looking at the event data
 if concatenateAllevents
     concantenate_event_data(datapathAll);
 end
 
 eventTable = loadEventLog([subfoldpath,'/EventLog.json'])
 
-%% extract programming inforamtion
-countStimEvents = 0;
-for ii=1:size(eventTable,1)
-    % extract therapy group
-    if contains(eventTable.EventType{ii,:},'001') 
-        stimTherapyStr = eventTable.EventType(ii);
-    else
-        stimTherapyStr = [];
+%% access device settings/sense channels
+[senseSettings,stimActiveSettings,stimGroups] = loadSenseStimSettings([subfoldpath,'/DeviceSettings.json']);
+% identify settings closer to programming
+% sensesetings during programming, subeventtype codes:change stim Amp ('015'), incremebt stim amp ('013')
+stimIncIdx = find(contains(eventTable.EventType,'013') | contains(eventTable.EventType,'015'));
+if size(senseSettings,1) > 1
+    for ii=1:size(senseSettings,1)
+        time_dist(ii) = abs(senseSettings.timeStart(ii)-eventTable.HostUnixTime(stimIncIdx(1)));
     end
-    % extract stim amplitudes    
-    if contains(eventTable.EventType{ii,:},'013') || contains(eventTable.EventType{ii,:},'015')
-        countStimEvents = countStimEvents + 1;
-        idxStimEvent(countStimEvents) = ii;
-        tempStr = char(eventTable.EventType(ii));
-        
-        if isnumeric(str2num(tempStr(end)))
-            lastDigit = str2num(tempStr(end));
-        else
-            lastDigit = [];
-        end
-        
-        if strcmp(tempStr(end-1),'.')
-            colonChar = tempStr(end-1);
-        else
-            colonChar = [];
-        end
-        
-        if isnumeric(str2num(tempStr(end-2)))
-            firstDigit = str2num(tempStr(end-2));
-        else
-            firstDigit = [];
-        end
-        
-        if ~isempty(firstDigit) && ~isempty(colonChar) && ~isempty(lastDigit) 
-            stimAmplitudes{countStimEvents,:} = [num2str(firstDigit),colonChar,num2str(lastDigit)];
-        elseif ~strcmp(colonChar,'.')
-            stimAmplitudes{countStimEvents,:} = [num2str(lastDigit),'.',num2str(0)];
-        end
-    end
-    
 end
+[val,idx] = min(time_dist);
+senseSettingsProgr = senseSettings(idx,:);
 
-% extracting the stim Amp value
+%% extract programming inforamtion
+[stimAmplitudes,idxStimEvent] = getProgrammingAmplitudeChanges(eventTable);
 stimAmplitudesNum = str2num(char(stimAmplitudes{:,:}));
 
-figure, title(stimTherapyStr), fontSize = 12;
+%% Create main Figure/Pannel
+strName = ['Stim electrodes: ',char(stimActiveSettings.electrodes), ...
+            ', PW = ',num2str(stimActiveSettings.pulseWidth_mcrSec),...
+                ', rate = ', num2str(stimActiveSettings.rate_Hz)];
+fig1 = figure(1), fontSize = 16;
+set(gcf, 'Units', 'Normalized', 'OuterPosition', [1/2, 0, 1/2, 1]);
+
+% top pannel contains programming amplitudes
 ax1 = subplot(10,1,1);
-plot(datenum(eventTable.UnixOnsetTime(idxStimEvent)),stimAmplitudesNum), hold on, plot(datenum(eventTable.UnixOnsetTime(idxStimEvent)),stimAmplitudesNum,'o')
+plot(datenum(eventTable.UnixOnsetTime(idxStimEvent)),stimAmplitudesNum), hold on
+stem(datenum(eventTable.UnixOnsetTime(idxStimEvent)),stimAmplitudesNum,'o')
+text(datenum(eventTable.UnixOnsetTime(idxStimEvent)),stimAmplitudesNum+0.2,stimAmplitudes)
+title(strName)  
+ylabel('stim (mA)')
 datetick('x', 'HH:MM:SS',  'keepticks');
+legend('stim ampl trend','next stim value')
+set( findall(fig1, '-property', 'fontsize'), 'fontsize', fontSize)
 
 %% Access time domain raw data for all channels
 [outdatcomplete,outRec,eventTable,outdatcompleteAcc,powerOut,adaptiveTable] = MAIN_load_rcs_data_from_folder(subfoldpath);
-
-%% access device settings/sense channels
-deviceSettings = loadDeviceSettings([subfoldpath,'/DeviceSettings.json']);
-for ii=1:size(deviceSettings,2)
-    deviceSettings(ii).timeStart
-    deviceSettings(ii).timeEnd
-    deviceSettings(ii).duration
-    deviceSettings(ii).tdData.chanFullStr
-end
-
-%%%% here
-stimSettings = loadStimulationSettings([subfoldpath,'/DeviceSettings.json'])
     
-%% plot neural data
-if strcmp(deviceSettings(1).tdData(1).sampleRate,'500Hz')
-    sr = 500;
-end
-
-y0 = outdatcomplete.key0; y0 = (y0-mean(y0))*1e3; 
-y1 = outdatcomplete.key1; y1 = (y1-mean(y1))*1e3;
-y2 = outdatcomplete.key2; y2 = (y2-mean(y2))*1e3;
-y3 = outdatcomplete.key3; y3 = (y3-mean(y3))*1e3;
-
-t = outdatcomplete.derivedTimes;
+% prepare neural data
+sr = senseSettingsProgr.samplingRate;
+[t,Y] = preprocessTDSignals(outdatcomplete);
 
 % compute spectrogram 
-specRes = 500e-3; % seconds
-overlapPerc = 80;
-minThreshold = -1;
+[Sp,Fp,Tp,specRes] = computeSpectrogram(Y,sr,[5 30],[1 100]);
 t0 = seconds(specRes);
+tpdur = seconds(Tp(1,:)); tp_date = t0+t(1)+tpdur; 
 
-% pallidal
-freqBnd = [5 30];
-[sp0,fp0,tp0] = pspectrum(y0,sr,'spectrogram','Leakage',1,'OverlapPercent',overlapPerc, ...
-    'MinThreshold',minThreshold,'FrequencyLimits',freqBnd,'TimeResolution', specRes);
-
-tp0dur = seconds(tp0); tp0_date = t0+t(1)+tp0dur; 
-
-[sp1,fp1,tp1] = pspectrum(y1,sr,'spectrogram','Leakage',1,'OverlapPercent',overlapPerc, ...
-    'MinThreshold',minThreshold,'FrequencyLimits',freqBnd,'TimeResolution', specRes);
-tp1dur = seconds(tp1); tp1_date = t0+t(1)+tp1dur; 
-
-% cortex
-freqBnd = [5 100];
-[sp2,fp2,tp2] = pspectrum(y2,sr,'spectrogram','Leakage',1,'OverlapPercent',overlapPerc, ...
-    'MinThreshold',minThreshold,'FrequencyLimits',freqBnd,'TimeResolution', specRes);
-tp2dur = seconds(tp2); tp2_date = t(1)+tp2dur; 
-
-[sp3,fp3,tp3] = pspectrum(y3,sr,'spectrogram','Leakage',1,'OverlapPercent',overlapPerc, ...
-    'MinThreshold',minThreshold,'FrequencyLimits',freqBnd,'TimeResolution', specRes);
-tp3dur = seconds(tp3); tp3_date = t(1)+tp3dur; 
-
-ax2 = subplot(10,1,2);
-plot(datenum(t),y0)
-datetick('x', 'HH:MM:SS',  'keepticks');
-ax3 = subplot(10,1,3);
-pcolor(datenum(tp0_date),fp0,10*log10(abs(sp0))); shading flat
-datetick('x', 'HH:MM:SS',  'keepticks');
-set(ax2,'xlim',[datenum(t(1)) datenum(t(end)+seconds(2))])
-set(ax3,'xlim',[datenum(tp0_date(1)) datenum(tp0_date(end)+seconds(2))])
-
-ax4 = subplot(10,1,4);
-plot(datenum(t),y1)
-datetick('x', 'HH:MM:SS',  'keepticks');
-ax5 = subplot(10,1,5);
-pcolor(datenum(tp1_date),fp1,10*log10(abs(sp1))); shading flat
-datetick('x', 'HH:MM:SS',  'keepticks');
-set(ax4,'xlim',[datenum(t(1)) datenum(t(end)+seconds(2))])
-set(ax5,'xlim',[datenum(tp1_date(1)) datenum(tp1_date(end)+seconds(2))])
-
-ax6=subplot(10,1,6);
-plot(datenum(t),y2)
-datetick('x', 'HH:MM:SS',  'keepticks');
-ax7=subplot(10,1,7);
-pcolor(datenum(tp2_date),fp2,10*log10(abs(sp2))); shading flat 
-datetick('x', 'HH:MM:SS',  'keepticks');
-set(ax6,'xlim',[datenum(t(1)) datenum(t(end)+seconds(2))])
-set(ax7,'xlim',[datenum(tp3_date(1)) datenum(tp3_date(end)+seconds(2))])
-
-ax8=subplot(10,1,8);
-plot(datenum(t),y3)
-datetick('x', 'HH:MM:SS',  'keepticks');
-ax9=subplot(10,1,9);
-pcolor(datenum(tp3_date),fp3,10*log10(abs(sp3))); shading flat
-datetick('x', 'HH:MM:SS',  'keepticks');
-set(ax8,'xlim',[datenum(t(1)) datenum(t(end)+seconds(2))])
-set(ax9,'xlim',[datenum(tp3_date(1)) datenum(tp3_date(end)+seconds(2))])
+for ii=1:4
+    ax(2*ii) = subplot(10,1,ii*2);
+    plot(datenum(t),Y(ii,:))
+    datetick('x', 'HH:MM:SS',  'keepticks');
+    ax(2*ii+1) = subplot(10,1,ii*2+1);
+    temp = 10*log10(abs(Sp(ii,:,:)));
+    pcolor(datenum(tp_date),Fp(ii,:),squeeze(temp(1,:,:))); shading flat
+    datetick('x', 'HH:MM:SS',  'keepticks');
+    set(ax(2*ii),'xlim',[datenum(t(1)) datenum(t(end)+seconds(2))]);
+    set(ax(2*ii+1),'xlim',[datenum(tp_date(1)) datenum(tp_date(end)+seconds(2))]);
+end
+axCount = 2*ii+1;
 
 % plot acc data
-acc.x = outdatcompleteAcc.XSamples-mean(outdatcompleteAcc.XSamples);
-acc.y = outdatcompleteAcc.YSamples-mean(outdatcompleteAcc.YSamples);
-acc.z = outdatcompleteAcc.ZSamples-mean(outdatcompleteAcc.ZSamples);
-acc.norm = sqrt(acc.x.^2+acc.y.^2+acc.z.^2);
-tacc = outdatcompleteAcc.derivedTimes;
-ax10=subplot(10,1,10);
-hold on
-plot(datenum(tacc),acc.norm)
-% ,'b',tacc,acc.y,'g',tacc,acc.z,'m',tacc,acc.norm,'k')
+axCount = axCount + 1;
+[tacc,accSig] = preprocessAccSignals(outdatcompleteAcc);
+ax(axCount)=subplot(10,1,10);
+plot(datenum(tacc),accSig.norm)
 datetick('x', 'HH:MM:SS',  'keepticks');
+set(ax(axCount),'xlim',[datenum(min(tacc)) datenum(max(tacc))])
+set(ax(axCount),'ylim',[0 1.1*max(accSig.norm)])
+ylabel('acc (centiG)')
+xlabel('time (dateTime)')
+linkaxes(ax(:),'x')
+set( findall(fig1, '-property', 'fontsize'), 'fontsize', fontSize)
 
-set(ax1,'xlim',[datenum(min(tacc)) datenum(max(tacc))])
-set(ax1,'ylim',[0 max(stimAmplitudesNum)])
+%% calculate and plot extreme cases of PSD of neural data as function of changes in stim amplitude
+% prepare figure
+strName = ['Stim electrodes: ',char(stimActiveSettings.electrodes), ...
+            ', PW = ',num2str(stimActiveSettings.pulseWidth_mcrSec),...
+                ', rate = ', num2str(stimActiveSettings.rate_Hz)];
+fig2 = figure(2), set(gcf, 'Units', 'Normalized', 'OuterPosition', [0, 0, 0.5, 0.5]);
 
-linkaxes([ax1,ax2,ax3,ax4,ax5,ax6,ax7,ax8,ax9,ax10],'x')
-
-%% calculate PSD of neral data between changes in stim amplitude
 t_stim_delta = eventTable.UnixOnsetTime(idxStimEvent);
-figure(10); title(stimTherapyStr)
 for ii=1:length(t_stim_delta)-1
     t1 = t_stim_delta(ii);
     t2 = t_stim_delta(ii+1);
     % extract neural data btw t1 & t2
     t_idx = find(t>t1 & t<t2);
-    % refine t_idx to avoid first 20% of data (contains dc shift)
-    t_idx2 = t_idx(round(length(t_idx)/5):end); 
-    if ~isempty(t_idx) && (ii==1 || ii==(length(t_stim_delta)-1))
-        [fftOut,ff]   = pwelch(y0(t_idx2),sr,sr/2,0:1:sr/2,sr,'psd');
-        figure(10); ax1 = subplot(221); hold on
-        plot(ff,log10(fftOut),'DisplayName',['Amp = ',num2str(stimAmplitudesNum(ii))])
-        legend('-DynamicLegend');
-        figure(1); subplot(10,1,2); hold on; plot(datenum(t(t_idx)),y0(t_idx),'o')
-        [fftOut,ff]   = pwelch(y1(t_idx2),sr,sr/2,0:1:sr/2,sr,'psd');
-        figure(10); ax3 = subplot(223); hold on
-        plot(ff,log10(fftOut),'DisplayName',['Amp = ',num2str(stimAmplitudesNum(ii))])    
-        legend('-DynamicLegend');
-        [fftOut,ff]   = pwelch(y2(t_idx2),sr,sr/2,0:1:sr/2,sr,'psd');
-        ax2 = subplot(222); hold on
-        plot(ff,log10(fftOut),'DisplayName',['Amp = ',num2str(stimAmplitudesNum(ii))])
-        legend('-DynamicLegend');
-        [fftOut,ff]   = pwelch(y3(t_idx2),sr,sr/2,0:1:sr/2,sr,'psd');
-        ax4 = subplot(224); hold on
-        plot(ff,log10(fftOut),'DisplayName',['Amp = ',num2str(stimAmplitudesNum(ii))])
-        legend('-DynamicLegend');
+    if ~isempty(t_idx) && (ii==1 || ii==(length(t_stim_delta)-1)) % this is to choose the extreme cases (ii=1->first amplitude & ii=end->last ampltidue)
+        % refine t_idx to avoid first 20% of data (contains dc shift)
+        t_idx2 = t_idx(round(length(t_idx)/5):end); 
+        for jj=1:size(Y,1)
+            [fftOut,ff]   = pwelch(Y(jj,t_idx2),sr,sr/2,0:1:sr/2,sr,'psd');
+            % segment of points used in the original time domain signal
+            if jj==1
+                figure(1); subplot(10,1,2); hold on; plot(datenum(t(t_idx)),Y(jj,t_idx),'o')
+            end
+            % update figure panel
+            figure(2); ax2(jj) = subplot(2,2,jj); hold on
+            plot(ff,log10(fftOut),'DisplayName',['Amp = ',num2str(stimAmplitudesNum(ii))])
+            legend('-DynamicLegend');
+            xlabel('freq (Hz)'), ylabel('Power  (log_1_0\muV^2/Hz)');
+            switch jj
+                case 1, title(senseSettingsProgr.chan1)
+                case 2, title(senseSettingsProgr.chan2)
+                case 3, title(senseSettingsProgr.chan3)
+                case 4, title(senseSettingsProgr.chan4)
+            end
+            
+        end
     end
 end
 
-set([ax1,ax2,ax3,ax4],'xlim',[0 100])
+set(ax2,'xlim',[0 100])
+set( findall(fig2, '-property', 'fontsize'), 'fontsize', fontSize)
+
 %% Montage
 %  1) first time analysing montage data, run
 %       - open_and_save_montage_data_in_sessions_directory(mainFolderSessions)
@@ -231,4 +156,3 @@ set([ax1,ax2,ax3,ax4],'xlim',[0 100])
 if plotMontage
     plot_compare_montage_data_from_saved_montage_files(datapathAll,'500Hz')
 end
-
