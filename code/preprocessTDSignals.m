@@ -1,4 +1,4 @@
-function [t_out,Y_out] = preprocessTDSignals(outdatcomplete,fillPacketLossGaps)
+function [t_out,Y_out] = preprocessTDSignals(outdatcomplete,fillPacketLossGaps,sampleRate)
 
 % inputs:
 % 1) outdatcomplete
@@ -27,7 +27,7 @@ if fillPacketLossGaps
     t_num_diff = diff(t_num);
     subplot(212);plot(t_num(1:end-1),t_num_diff,'+r')
     mean_val = mean(t_num_diff);
-    [peak,gapIdx] = findpeaks(t_num_diff,'Threshold',mean_val*1000) % packet loss longer than 2 x sample rate ### sr = 500 (hard coded)
+    [peak,gapIdx] = findpeaks(t_num_diff,'Threshold',mean_val*sampleRate*2) % packet loss longer than 2 x sample rate ### sr = 500 (hard coded)
 
     if isempty(gapIdx) % no packet loss higher than 2 seconds
         Y_out = Y;
