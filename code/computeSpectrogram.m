@@ -20,7 +20,7 @@ end
 
 for ii=1:size(Y,1)
     % assign freq band
-    if ii==1 || i==2
+    if ii==1 || ii==2
         freqBnd = freqBnd1;
     else
         freqBnd = freqBnd2;

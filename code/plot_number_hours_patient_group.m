@@ -9,10 +9,19 @@ function plot_number_hours_patient_group(dirname)
 % Note: in patient RCS03 both sides need to be segragated
 
 close all, clear all, clc
-fontSize = 22;
+fontSize = 26;
 patsgp = {'RCS03','RCS09','RCS10'};
 dirname = '/Users/juananso/Starr Lab Dropbox/RC+S Patient Un-Synced Data/database/';
 savedir = '/Users/juananso/Box Sync/RCS_GP_data_analysis_boxshare_juan_cora_phil/databaseoutput';
+
+RCS03L_DBS_OFF_DAY_HOURS = hours(246);  % Hard coding this value, bcs problem with data base
+RCS03L_DBS_OFF_NIGHT_HOURS = hours(21);  % Hard coding this value, bcs problem with data base
+
+RCS03L_DBS_ON_DAY_HOURS = hours(34);  
+RCS03L_DBS_ON_NIGHT_HOURS = hours(30);  
+
+RCS03R_DBS_ON_DAY_HOURS = hours(33);  
+RCS03R_DBS_ON_NIGHT_HOURS = hours(31);  
 
 %% access summary data base file
 sensestimdbpath = fullfile(dirname,'sense_stim_database.mat');
@@ -37,19 +46,31 @@ for ii=1:size(patsgp,2)
     dbsoff_day = dbsoff(idxday,:);
     dbsoff_night = dbsoff(~idxday,:);
     db.rcs_Patient(ii) = dbsoff_day.patient(1);
+    
     % separate sides, during day
     idxday_Left = find(strcmp(dbsoff_day.side,'L'));
     dbsoff_day_Left = dbsoff_day(idxday_Left,:);
     idxday_Right = find(strcmp(dbsoff_day.side,'R'));
     dbsoff_day_Right = dbsoff_day(idxday_Right,:);
-    db.dbsoff_HoursDay_Left(ii) = sum(dbsoff_day_Left.duration);
-    db.dbsoff_HoursDay_Right(ii) = sum(dbsoff_day_Right.duration);
+
+    if strcmp(char(patsgp(ii)),'RCS03') % hard coded bcs of database problem
+        db.dbsoff_HoursDay_Left(ii) = RCS03L_DBS_OFF_DAY_HOURS;
+    else
+        db.dbsoff_HoursDay_Left(ii) = sum(dbsoff_day_Left.duration);
+    end
+	db.dbsoff_HoursDay_Right(ii) = sum(dbsoff_day_Right.duration);
+    
     % separate sides, during night
     idxnight_Left = find(strcmp(dbsoff_night.side,'L'));
     dbsoff_night_Left = dbsoff_night(idxnight_Left,:);
     idxnight_Right = find(strcmp(dbsoff_night.side,'R'));
     dbsoff_night_Right = dbsoff_night(idxnight_Right,:);
-    db.dbsoff_HoursNight_Left(ii) = sum(dbsoff_night_Left.duration);
+    
+    if strcmp(char(patsgp(ii)),'RCS03') % hard coded bcs of database problem
+        db.dbsoff_HoursNight_Left(ii) = RCS03L_DBS_OFF_NIGHT_HOURS;
+    else
+        db.dbsoff_HoursNight_Left(ii) = sum(dbsoff_night_Left.duration);
+    end
     db.dbsoff_HoursNight_Right(ii) = sum(dbsoff_night_Right.duration);
     
     %% dbs on
@@ -64,16 +85,31 @@ for ii=1:size(patsgp,2)
     dbson_day_Left = dbson_day(idxxday_Left,:);
     idxday_Right = find(strcmp(dbson_day.side,'R'));
     dbson_day_Right = dbson_day(idxday_Right,:);
-    db.dbson_HoursDay_Left(ii) = sum(dbson_day_Left.duration);
-    db.dbson_HoursDay_Right(ii) = sum(dbson_day_Right.duration);
+    if strcmp(char(patsgp(ii)),'RCS03') % hard coded bcs of database problem
+        db.dbson_HoursDay_Left(ii) = sum(dbson_day_Left.duration) + RCS03L_DBS_ON_DAY_HOURS;
+    else
+        db.dbson_HoursDay_Left(ii) = sum(dbson_day_Left.duration);
+    end 
+    if strcmp(char(patsgp(ii)),'RCS03') % hard coded bcs of database problem
+        db.dbson_HoursDay_Right(ii) = RCS03R_DBS_ON_DAY_HOURS;
+    else
+        db.dbson_HoursDay_Right(ii) = sum(dbson_day_Right.duration);
+    end
     % separate sides, during night
     idxnight_Left = find(strcmp(dbson_night.side,'L'));
     dbson_night_Left = dbson_night(idxnight_Left,:);
     idxnight_Right = find(strcmp(dbson_night.side,'R'));
     dbson_night_Right = dbson_night(idxnight_Right,:);
-    db.dbson_HoursNight_Left(ii) = sum(dbson_night_Left.duration);
-    db.dbson_HoursNight_Right(ii) = sum(dbson_night_Right.duration);
-    
+    if strcmp(char(patsgp(ii)),'RCS03') % hard coded bcs of database problem
+        db.dbson_HoursNight_Left(ii) =  sum(dbson_night_Left.duration) + RCS03L_DBS_ON_NIGHT_HOURS;
+    else
+        db.dbson_HoursNight_Left(ii) = sum(dbson_night_Left.duration);
+    end 
+    if strcmp(char(patsgp(ii)),'RCS03') % hard coded bcs of database problem
+        db.dbson_HoursNight_Right(ii) = RCS03R_DBS_ON_NIGHT_HOURS;
+    else
+        db.dbson_HoursNight_Right(ii) = sum(dbson_night_Right.duration);
+    end    
 end
 
 %% plot hours in bar plot (each side, Left and Right, separated) & save figures
@@ -83,7 +119,7 @@ xtipoffset = [-0.28,-0.09,0.09,0.28];
 figh = zeros(1,size(sides,2));
 for sideii=1:length(sides)
     figh(sideii) = figure(sideii); set(figh(sideii), 'Units', 'Normalized', 'OuterPosition', [0, 0, 0.5, 0.75]);
-    y = getHoursPerSide(db,sideii);
+    y = getHoursPerSide(db,sideii)
     b = bar(x,round(hours(y)));
     for ii=1:size(y,2)
         xtips = b(ii).XData+xtipoffset(ii);
@@ -92,10 +128,11 @@ for sideii=1:length(sides)
         text(xtips,ytips,labels,'HorizontalAlignment','center',...
             'VerticalAlignment','bottom')
     end
-    legend('DBS OFF awake','DBS OFF sleep','DBS ON awake','DBS ON sleep');
-    title([char(sides(sideii)),' side, Hours home recordings Globus Pallidus patients'])
+    legend('DBS OFF day','DBS OFF night','DBS ON day','DBS ON night');
+    title([char(sides(sideii)),' side, Hours home recordings GP patients'])
     set(gca, 'XTick', [1 2 3])
     set(gca, 'XTickLabel', patsgp)
+    ylim([0 200])
     set( findall(figh(sideii), '-property', 'fontsize'), 'fontsize', fontSize);
 
     % save figures

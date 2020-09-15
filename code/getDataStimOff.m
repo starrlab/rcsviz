@@ -1,0 +1,6 @@
+function dbstimoff = getDataStimOff(databasein)
+    idx     = ( databasein.stimulation_on == 0  | ...
+                    databasein.amplitude_mA == 0    | ...
+                        databasein.rate_Hz <= 100         );
+    dbstimoff = databasein(idx,:);
+end

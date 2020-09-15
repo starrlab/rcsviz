@@ -1,36 +1,40 @@
-% function psdSessionsFolder(dirname)
+% output = function get_psd_chunks_10min(varargin)
 
-close all; clear all, clc
+close all;clear all;clc
+
 %% based on sense stim data base, will access session data based on 1 of 3 criterias
 % 1) all data at sampling rate = X (e.g. X = 250, home recordings)
 % 2) stimulation off or stimulation on
 % 3) awake or sleep data
 % in any of those combinations, segragate differences in sense channels
 
-close all; clear all; clc
-%% include toolbox
 includeToolbox
 
 %% inputs
-PAT = 'RCS10';
+PAT = 'RCS03';
 SIDE = 'L';
-PORTION_DATA_PLOTTED = 0.5;
+colorTraces = 'blue';
+PORTION_DATA_PLOTTED = 1;
 plotStimOnCh0Pat = 0;
 analyseDay = 1; % '0' night, '1' day
-stimOn = 0; % '0' DBS off, '1' DBS on
-saveFigures = 0;
+stimOn = 1; % '0' DBS off, '1' DBS on
+saveFigures = 1;
 SR = '250';
 MINUTES = 10;
 freqs = [4 8 12 20 30 60 80];
-OPPACITY = 0.2; % <0.5
+OPPACITY = 0.1; % <0.5
 YLIM = [-2 3];
 fontSize = 18;
+
+%% extract patients side data from device settings master table database
+pathdb = '/Users/juananso/Starr Lab Dropbox/RC+S Patient Un-Synced Data/database';
+dbfilename = 'database_from_device_settings.mat';
+databaseall = load(fullfile(pathdb,dbfilename));
 
 %% access sense stim data base
 basedir = '/Users/juananso/Starr Lab Dropbox/RC+S Patient Un-Synced Data/';
 patspecdir = [PAT,' Un-Synced Data/SummitData/SummitContinuousBilateralStreaming/'];
-patsidespecdir = fullfile(basedir,patspecdir,[PAT,SIDE])
-PathToSenseStimDB = char(findFilesBVQX(patsidespecdir,'stim_and_sense_settings_table.mat'));
+patsidespecdir = fullfile(basedir,patspecdir,[PAT,SIDE]);
 
 %% init folder to save figures and conditions/events file
 mkdir(patsidespecdir,'Figures');
@@ -39,41 +43,38 @@ saveFigDir = fullfile(patsidespecdir,'/Figures');
 %% directory to save mat files of states DBS off, DBS on
 saveMatFile = '/Users/juananso/Box Sync/RCS_GP_data_analysis_boxshare_juan_cora_phil/databaseoutput/mat_files_dbs_off_on_per_patient'
 
-%% load data
-load(PathToSenseStimDB)
-senseStimFromOPday = sense_stim_table(3:end,:);
-
-%% select based on sampling freq
-idx = contains(senseStimFromOPday.chan1,SR);
-dataBase1 = senseStimFromOPday(idx,:)
-colorTraces = 'blue';
-
-    
-%% select based on stimulation off or on
-if ~stimOn % stim off (therapy inactive)
-    idx = find(dataBase1.stimulation_on == 0 | dataBase1.amplitude_mA == 0 | dataBase1.rate_Hz <= 100); 
-else % stim on (therapy active)
-    idx = find(dataBase1.stimulation_on == 1 & dataBase1.amplitude_mA > 0 & dataBase1.rate_Hz >= 100);
+% access session folders within patient directory with session folders
+idx = strcmp(databaseall.masterTableOut.patient,PAT) & ...
+        strcmp(databaseall.masterTableOut.side,SIDE);
+database_patside = databaseall.masterTableOut(idx,:);
+count = 1;
+for ii=1:size(database_patside,1)
+    if ~strcmp(char(database_patside.chan1(ii)),'NA') % not considered 'NA' cases
+        if database_patside.senseSettings{ii}.samplingRate == 250
+            idsr250(count) = ii;
+            count = count + 1;
+        end
+    end
 end
-dataBase2 = dataBase1(idx,:)
 
-%% select only those awake (7 am is waking up moment)
-idx = ~(dataBase2.endTime.Hour < 7);
-dataBase2_day = dataBase2(idx,:);
-dataBase2_night = dataBase2(~idx,:);
+database_250Hz = database_patside(idsr250,:);
 
-%% asign analysis day or night to analysis
-if analyseDay
-    db1 = dataBase2_day;
+% parse data based on conditions
+[dbday,dbnight] = getDataDayAndNight(database_250Hz);
+
+if stimOn
+    db1 = getDataStimOn(dbday);
 else
-    db1 = dataBase2_night;
+    db1 = getDataStimOff(dbday);
 end
 
 %% separate the different channels in sandwich config
+% montages = getDiffMontages(dbtoprocess);
 firstSenseConfig = db1.chan1(1,:); % takes first sense config on sub data base
 idx = strcmp(db1.chan1,firstSenseConfig);
 db1_chsConfig1 = db1(idx,:);
 db1_chsConfig2 = db1(~idx,:);
+
 
 %% concatenate all for each config of chs data, plot it and save figures
 if ~isempty(db1_chsConfig2)
@@ -84,7 +85,9 @@ else
     loopTimes = 1;
 end
 
-for ll=1
+fprintf('here')
+stimStatus = table();
+for ll=1:loopTimes
     if ll==1
         db2 = db1_chsConfig1;
     elseif ll==2 % there is a second config channel
@@ -100,13 +103,14 @@ for ll=1
     stimOn_chunked_all = [];
     recordNumAll = 0;
     for ii=1:round(size(db2,1)*PORTION_DATA_PLOTTED)
-        disp(['file ',num2str(ii),' from ',num2str(size(db2,1)),'...']);
-        dirSession = fullfile(patsidespecdir,db2.sessname(ii));
+        disp(['file ',num2str(ii),' from ',num2str(size(db2,1)),'...']);  
+        
+        dirSession = fullfile(patsidespecdir,db2.session(ii));       
         TD_files_name = findFilesBVQX(dirSession,'RawDataTD.mat');
         if isfile(char(TD_files_name))
             load(char(TD_files_name))
-            deviceSettingsFile = findFilesBVQX(dirSession,'DeviceSettings.json');
-            [deviceSettingsOut,stimStatus,stimState]  = loadDeviceSettingsForMontage(char(deviceSettingsFile));
+            stimStatus = db2.stimStatus{ll};
+            
             if ~isempty(outdatcomplete) 
                 signal = outdatcomplete(:,1:4);
                 Fs=srates(1);
@@ -115,9 +119,6 @@ for ll=1
                 if length(T)>1
                     for i = 1:length(T)
                     tt = T(i);
-    %                 figure(1)
-    %                 hold on
-    %                 plot(table2array(signal(tt:tt+period_psd-1,1))-mean(table2array(signal(tt:tt+period_psd-1,1)))')
                     Key0_chunked(i,:) = 1e3*(table2array(signal(tt:tt+period_psd-1,1))-mean(table2array(signal(tt:tt+period_psd-1,1))));
                     Key1_chunked(i,:) = 1e3*(table2array(signal(tt:tt+period_psd-1,2))-mean(table2array(signal(tt:tt+period_psd-1,2))));
                     Key2_chunked(i,:) = 1e3*(table2array(signal(tt:tt+period_psd-1,3))-mean(table2array(signal(tt:tt+period_psd-1,3))));
@@ -146,6 +147,13 @@ for ll=1
     NOVERLAP = round(Fs*0.5);         % # signal samples that are common to adjacent segments for welch's method
     NFFT = Fs;
 
+    %% calculate duration
+    duration_hours = (size(Key0_chunked_all,1) * size(Key0_chunked_all,2) / Fs) / 3600;
+    hours = floor(duration_hours);
+    minutes = abs(hours - duration_hours)*60;
+    durationhhmmss = char(duration(hours,minutes,0));
+    durationhhmm = durationhhmmss(1:end-3);
+    
     %% compute PSD
     fig1(ll) = figure(ll), set(gcf, 'Units', 'Normalized', 'OuterPosition', [0, 0, 0.5, 0.75]); hold on   
     SIGNAL = [];
@@ -159,7 +167,7 @@ for ll=1
             case 3, SIGNAL = Key2_chunked_all'; outputToSave.chsrkey2{1} = char(db2.chan3(1)); strtitlefix = 'S1'; outputToSave.key2{1} = SIGNAL;
             case 4, SIGNAL = Key3_chunked_all'; outputToSave.chsrkey3{1} = char(db2.chan4(1)); strtitlefix = 'M1'; outputToSave.key3{1} = SIGNAL;
          end
-        [psd,F] = pwelch(SIGNAL,WINDOW,NOVERLAP,NFFT,Fs);
+        [psd,F] = pwelch(SIGNAL,WINDOW,NOVERLAP,NFFT,Fs,'psd');
         p = plot(F,log10(psd),'Color',colorTraces);
         for pi=1:size(p,1)
             p(pi).Color = [p(pi).Color, OPPACITY]; % add oppacity component
@@ -169,7 +177,7 @@ for ll=1
         hold on;
         for fi=1:length(freqs)
             plot([freqs(fi) freqs(fi)],[-3 4],':k','linewidth',1)
-%                 text(freqs(fi)+0.1,-2.8,num2str(freqs(fi)))
+    %                 text(freqs(fi)+0.1,-2.8,num2str(freqs(fi)))
         end
 
         %% to identify if StimOn 0mA in PAT=RCS10
@@ -248,7 +256,15 @@ for ll=1
             end
         end
 
-        sgtitle([char(dataBase1.patient(1)),char(dataBase1.side(1)),', ',num2str(MINUTES),' minutes PSD, ',titleStr,', recorded hours: ', char(sum(duration(db2.duration)))])
+        if stimOn
+            sgtitle({[char(db2.patient(1)),char(db2.side(1))],...
+                    ['stim on, (', char(stimStatus.electrodes),', ', num2str(stimStatus.amplitude_mA),' mA, ',num2str(stimStatus.rate_Hz),' Hz)'],...
+                    [durationhhmm,' (hh:mm), hours of data']})
+        else
+            sgtitle({[char(db2.patient(1)),char(db2.side(1))],'stim off',[durationhhmm,' (hh:mm), hours of data']});
+        end
+            
+        
         set( findall(fig1(ll), '-property', 'fontsize'), 'fontsize', fontSize)
         pointFigFig = fullfile(saveFigDir,figNameFig);
         saveas(fig1(ll),pointFigFig)
@@ -270,4 +286,4 @@ for ll=1
     Key3_chunked = [];
     stimOn_chunked = [];
 
-end 
+end
