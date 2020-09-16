@@ -11,13 +11,13 @@ close all;clear all;clc
 includeToolbox
 
 %% inputs
-PAT = 'RCS03';
-SIDE = 'L';
+PAT = 'RCS10';
+SIDE = 'R';
 colorTraces = 'blue';
 PORTION_DATA_PLOTTED = 1;
 plotStimOnCh0Pat = 0;
 analyseDay = 1; % '0' night, '1' day
-stimOn = 1; % '0' DBS off, '1' DBS on
+stimOn = 0; % '0' DBS off, '1' DBS on
 saveFigures = 1;
 SR = '250';
 MINUTES = 10;
@@ -86,7 +86,7 @@ else
 end
 
 fprintf('here')
-stimStatus = table();
+
 for ll=1:loopTimes
     if ll==1
         db2 = db1_chsConfig1;
@@ -102,13 +102,19 @@ for ll=1:loopTimes
     good=[];
     stimOn_chunked_all = [];
     recordNumAll = 0;
-    for ii=1:round(size(db2,1)*PORTION_DATA_PLOTTED)
+    stimSettings_all = table();
+    senseSettings_all = table();
+    counter = 1;
+    for ii=1:size(db2,1)
         disp(['file ',num2str(ii),' from ',num2str(size(db2,1)),'...']);  
-        
         dirSession = fullfile(patsidespecdir,db2.session(ii));       
         TD_files_name = findFilesBVQX(dirSession,'RawDataTD.mat');
-        if isfile(char(TD_files_name))
+        if isempty(TD_files_name)
+            TD_files_name = findFilesBVQX(dirSession,'RawDataTD.json');
+            [outdatcomplete, srates, unqsrates] = MAIN(char(TD_files_name));
+        else
             load(char(TD_files_name))
+        end
             stimStatus = db2.stimStatus{ll};
             
             if ~isempty(outdatcomplete) 
@@ -140,7 +146,10 @@ for ll=1:loopTimes
 
                 end
             end
-        end
+            
+            stimSettings_all(counter,:) = stimStatus;
+            senseSettings_all(counter,:) = db2.senseSettings{ll};
+            counter = counter + 1;
     end
 
     WINDOW = Fs;           % segment length and Hamming window length for welch's method
@@ -162,10 +171,14 @@ for ll=1:loopTimes
         ax1(ii) = subplot(2,2,ii);
         hold on
         switch ii
-            case 1, SIGNAL = Key0_chunked_all'; outputToSave.chsrkey0{1} = char(db2.chan1(1)); strtitlefix = 'GPi'; outputToSave.key0{1} = SIGNAL;
-            case 2, SIGNAL = Key1_chunked_all'; outputToSave.chsrkey1{1} = char(db2.chan2(1)); strtitlefix = 'GPe'; outputToSave.key1{1} = SIGNAL;
-            case 3, SIGNAL = Key2_chunked_all'; outputToSave.chsrkey2{1} = char(db2.chan3(1)); strtitlefix = 'S1'; outputToSave.key2{1} = SIGNAL;
-            case 4, SIGNAL = Key3_chunked_all'; outputToSave.chsrkey3{1} = char(db2.chan4(1)); strtitlefix = 'M1'; outputToSave.key3{1} = SIGNAL;
+            case 1, SIGNAL = Key0_chunked_all'; outputToSave.chsrkey0{1} = char(db2.chan1(1));
+                strtitlefix = {'GPi',char(senseSettings_all.chan1(1))}; outputToSave.key0{1} = SIGNAL;
+            case 2, SIGNAL = Key1_chunked_all'; outputToSave.chsrkey1{1} = char(db2.chan2(1));
+                strtitlefix = {'GPe',char(senseSettings_all.chan2(1))}; outputToSave.key1{1} = SIGNAL;
+            case 3, SIGNAL = Key2_chunked_all'; outputToSave.chsrkey2{1} = char(db2.chan3(1));
+                strtitlefix = {'S1',char(senseSettings_all.chan3(1))}; outputToSave.key2{1} = SIGNAL;
+            case 4, SIGNAL = Key3_chunked_all'; outputToSave.chsrkey3{1} = char(db2.chan4(1));
+                strtitlefix = {'M1',char(senseSettings_all.chan4(1))}; outputToSave.key3{1} = SIGNAL;
          end
         [psd,F] = pwelch(SIGNAL,WINDOW,NOVERLAP,NFFT,Fs,'psd');
         p = plot(F,log10(psd),'Color',colorTraces);
@@ -257,8 +270,20 @@ for ll=1:loopTimes
         end
 
         if stimOn
+            stimAmpStr = unique(stimSettings_all.amplitude_mA);
+            if length(stimAmpStr) > 1
+                maxStim = max(str2double(stimAmpStr));
+                minStim = min(str2double(stimAmpStr));
+                stimAmpStr2 = [num2str(minStim),', to ',num2str(maxStim)];
+            else
+                stimAmpStr2 = num2str(stimStatus.amplitude_mA);
+            end
             sgtitle({[char(db2.patient(1)),char(db2.side(1))],...
-                    ['stim on, (', char(stimStatus.electrodes),', ', num2str(stimStatus.amplitude_mA),' mA, ',num2str(stimStatus.rate_Hz),' Hz)'],...
+                    ['stim on, (', char(stimStatus.electrodes),', ', ...
+                     stimAmpStr2,' mA, ', ...
+                     num2str(stimSettings_all.pulseWidth_mcrSec(1)),' us, ',...
+                     'active recharge = ', num2str(stimSettings_all.active_recharge(1)),', ',...
+                     'stim rate = ',num2str(stimStatus.rate_Hz),' Hz)'],...
                     [durationhhmm,' (hh:mm), hours of data']})
         else
             sgtitle({[char(db2.patient(1)),char(db2.side(1))],'stim off',[durationhhmm,' (hh:mm), hours of data']});
