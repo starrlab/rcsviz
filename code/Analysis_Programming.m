@@ -126,8 +126,8 @@ for ii=1:4
     subPlotPos = get(ax(2*ii+1),'Position');
     colorbar(ax(2*ii+1),'Position',[subPlotPos(3)+0.15 subPlotPos(2)+0.01 0.01 0.05])
     ylabel('frequency (Hz)')
-    datetick('x', 'HH:MM:SS',  'keepticks');
-    set(ax(2*ii),'xlim',[datenum(t(1)) datenum(t(end)+seconds(2))]);
+
+    
     set(ax(2*ii+1),'xlim',[datenum(tp_date(1)) datenum(tp_date(end)+seconds(2))]);
 end
 axCount = 2*ii+1;
